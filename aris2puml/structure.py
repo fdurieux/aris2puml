@@ -13,7 +13,9 @@ Supported shapes:
   run to their own end event (no join);
 * AND / OR split → parallel branches → matching join of the same kind;
 * one back edge per loop, from an XOR split (directly, or via one event)
-  to an XOR join that is the loop header;
+  to an XOR join that is the loop header — a ``repeat``;
+* a back edge, from anywhere, to an XOR that both merges the retry and
+  decides whether to take it — a ``while``, the test at the top;
 * several start events: joined before the first function they become an
   *entry region* — nested if/switch/fork blocks whose outcomes are the
   start events (grouped by the join each reaches, chains of XOR joins
@@ -77,6 +79,16 @@ class Parallel:
 
 @dataclass
 class Loop:
+    header: Node
+    body: list
+    condition: str
+    back_label: str | None
+    exit_label: str | None
+
+
+@dataclass
+class While:
+    """A loop whose XOR both merges the retry and decides: test at the top."""
     header: Node
     body: list
     condition: str
@@ -172,7 +184,18 @@ class _Walker:
         # loop tails: split S -> (header, back-event-or-None)
         self.loops: dict[str, tuple[str, str | None]] = {}
         self.headers: set[str] = set()
+        self.whiles: dict[str, str] = {}     # header -> the node the back edge leaves
         for u, v in _back_edges(proc, self.starts):
+            # An XOR with several predecessors *and* several successors both
+            # merges the retry and decides on it: the test sits at the top of
+            # the loop, and everything on the way round is the body.
+            if (proc.node(v).kind == "xor"
+                    and len(proc.predecessors(v)) > 1 and len(proc.successors(v)) > 1):
+                if v in self.whiles:
+                    raise StructureError(f"loop header {v} closes two loops")
+                self.whiles[v] = u
+                self.headers.add(v)
+                continue
             un = proc.node(u)
             if un.kind == "event":
                 preds = proc.predecessors(u)
@@ -199,6 +222,19 @@ class _Walker:
             raise StructureError(f"{nid}: {self.p.node(nid).kind} has {len(s)} successors")
         return s[0] if s else None
 
+    def _reaches(self, start: str, target: str, without: str) -> bool:
+        """Is ``target`` reachable from ``start`` without passing ``without``?"""
+        seen, stack = {without}, [start]
+        while stack:
+            cur = stack.pop()
+            if cur == target:
+                return True
+            if cur in seen:
+                continue
+            seen.add(cur)
+            stack.extend(self.p.successors(cur))
+        return False
+
     def _mark(self, nid: str) -> None:
         if nid in self.seen:
             raise StructureError(f"{nid} is reached twice: unstructured cycle or jump")
@@ -211,7 +247,7 @@ class _Walker:
         while cur is not None and cur != stop:
             n = self.p.node(cur)
             if cur in self.headers:
-                blocks.append(self._loop(cur))
+                blocks.append(self._while(cur) if cur in self.whiles else self._loop(cur))
                 cur = self._after_loop
                 continue
             self._mark(cur)
@@ -485,6 +521,38 @@ class _Walker:
         if preds and self.p.node(preds[0]).kind in ("function", "interface"):
             return self.p.node(preds[0]).name + " outcome?"
         return "Outcome?"
+
+    def _while(self, header: str) -> While:
+        """A test-at-top loop: the header decides, one outcome runs the body
+        and returns to it, the other leaves."""
+        self._mark(header)
+        hn = self.p.node(header)
+        back_src = self.whiles[header]
+        succs = self.p.successors(header)
+        if len(succs) != 2:
+            raise StructureError(
+                f"loop header {header} must have exactly 2 outcomes, has {len(succs)}"
+            )
+        round_trip = [s for s in succs if self._reaches(s, back_src, header)]
+        if len(round_trip) != 1:
+            raise StructureError(
+                f"loop header {header}: cannot tell the looping outcome from the exit"
+            )
+        loop_head = round_trip[0]
+        exit_head = next(s for s in succs if s != loop_head)
+        back_label, start, ends = self._branch_start(loop_head, "xor")
+        if ends:
+            raise StructureError(f"loop header {header}: the looping outcome ends the flow")
+        body, reached = self.walk(start, header)
+        if reached != header:
+            raise StructureError(f"loop at {header} never returns to it")
+        exit_label, after, exit_ends = self._branch_start(exit_head, "xor")
+        self._after_loop = None if exit_ends else after
+        cond = self._condition(hn, [Branch(back_label, []), Branch(exit_label, [])])
+        block = While(hn, body, cond, back_label, exit_label)
+        if exit_ends:
+            block.body_end = Stop(self.p.node(exit_head))  # type: ignore[attr-defined]
+        return block
 
     def _loop(self, header: str) -> Loop:
         self._mark(header)

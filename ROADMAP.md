@@ -114,6 +114,27 @@ Two rules that follow from the pin to pumllint:
   SAP set, which barely models loops). `mortgage-application.json` and
   its variant are both refused here: the back edge leaves from an event
   that follows a function, not from an XOR outcome.*
+  *2026-09-04, later: the back edges themselves were counted rather than
+  the refusals — 2566 of them across the 1433 BPMAI models that have one,
+  by the shape they make:*
+
+  | Shape | BPMAI | SAP | Status |
+  |---|---|---|---|
+  | back edge from an XOR outcome event | 1041 | 8 | accepted since v0.1.0 |
+  | activities on the return path (`backward`) | 695 | 8 | **refused** |
+  | header not an XOR join — OR, AND or an activity | 426 | 17 | refused; no structured form |
+  | XOR both merges the retry and decides (`while`) | 220 | 1 | **accepted now** |
+  | back edge from the XOR split itself | 184 | 5 | accepted since v0.1.0 |
+
+  *The `while` shape is done: one XOR that both merges and decides becomes
+  `while … endwhile`, drawn from `mortgage-application-variant.json`
+  (`tests/test_loops.py`). The `backward` shape is the bigger prize and
+  the obvious next step — 494 of its 695 back edges have exactly one
+  activity on the return path, which `backward :…;` says exactly; the
+  remaining 201 have none or several and have no structured form. It
+  needs a mapping-table row for `backward` in pumllint's guide first:
+  pumllint's parser already accepts the construct, but the guide, which
+  owns the table, does not list it.*
 - [ ] **B2. `--strict`** — refuse OR connectors and any other
   approximation instead of warning, for teams gating on conversion
   fidelity. Small. *2026-09-04: folded mid-flow triggers (A2) are the
