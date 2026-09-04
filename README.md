@@ -118,3 +118,5 @@ model does not have.
 pip install -e ".[test,check]"
 python -m pytest
 ```
+
+What comes next, and in what order: [ROADMAP.md](ROADMAP.md).
