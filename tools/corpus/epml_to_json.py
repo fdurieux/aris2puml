@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """EPML (EPC Markup Language) → the aris2puml intermediate JSON, version 1.
 
-Corpus preparation only: this is not part of the ``aris2puml`` package and
-is not an EPML reader for the CLI. It exists so that every file under
-``tests/fixtures/corpus/`` can be regenerated from its upstream source —
-see that directory's README for the download URLs.
+Corpus preparation only: this is not part of the ``aris2puml`` package.
+The mapping itself lives in ``aris2puml.readers.epml`` (the CLI's
+``--from epml``); this script only writes what that reader produces, so
+the corpus fixtures and the reader cannot drift apart. It exists so that
+every file under ``tests/fixtures/corpus/`` can be regenerated from its
+upstream source — see that directory's README for the download URLs.
 
     python tools/corpus/epml_to_json.py SAPModels.epml out/ 440 439
 
@@ -21,31 +23,29 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-KINDS = {"function": "function", "event": "event",
-         "xor": "xor", "and": "and", "or": "or"}
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from aris2puml.readers.epml import convert_epc  # noqa: E402
 
 
 def convert(epc: ET.Element, prefix: str = "EPML") -> dict:
-    nodes, edges = [], []
-    for child in epc:
-        kind = KINDS.get(child.tag)
-        if kind:
-            node = {"id": child.get("id"), "kind": kind}
-            if kind in ("function", "event"):
-                node["name"] = " ".join((child.findtext("name") or "").split())
-            nodes.append(node)
-        elif child.tag == "arc":
-            flow = child.find("flow")
-            if flow is not None:
-                edges.append({"from": flow.get("source"), "to": flow.get("target")})
+    proc = convert_epc(epc, prefix)
+    nodes = []
+    for n in proc.nodes:
+        node = {"id": n.id, "kind": n.kind}
+        if n.kind in ("function", "event", "interface"):
+            node["name"] = n.name
+        if n.lane is not None:
+            node["lane"] = n.lane
+        if n.ref is not None:
+            node["ref"] = n.ref
+        nodes.append(node)
     return {
         "version": 1,
-        "process": {"id": f"{prefix}-{epc.get('epcId')}",
-                    "name": epc.get("name") or f"EPC {epc.get('epcId')}",
-                    "owner": ""},
-        "lanes": [],
+        "process": {"id": proc.id, "name": proc.name, "owner": proc.owner},
+        "lanes": [{"id": l.id, "name": l.name} for l in proc.lanes],
         "nodes": nodes,
-        "edges": edges,
+        "edges": [{"from": e.src, "to": e.dst} for e in proc.edges],
     }
 
 
