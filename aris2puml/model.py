@@ -32,6 +32,26 @@ class Edge:
     dst: str
 
 
+@dataclass(frozen=True)
+class Note:
+    """One thing a reader or the structuring pass could not carry over.
+
+    ``code`` is a stable machine-readable name for the fidelity sidecar;
+    ``text`` is the sentence the CLI prints. A *drop* loses an element
+    outright; an *approximation* keeps the shape and bends its meaning.
+    """
+    code: str      # e.g. "or-connector", "return-path-events", "unsupported-element"
+    node: str      # the element concerned; "start" for the entry region
+    text: str
+
+
+APPROXIMATED = ("mid-flow-trigger", "or-start-events", "or-connector")
+DROPPED = ("unsupported-element", "unused-lane", "return-path-events", "return-path-lane")
+# Reader drops are the contract working as documented, not a per-run surprise:
+# they go into the sidecar and stay off stderr.
+REPORT_ONLY = ("unsupported-element", "unused-lane")
+
+
 @dataclass
 class Process:
     id: str

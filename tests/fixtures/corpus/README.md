@@ -178,8 +178,11 @@ an empty label. That is a contract question, not a structuring one: the
 version-1 JSON requires a name on every function and event, and real
 exports do not always have one.
 
-Reproduce either column by downloading the collection (below), converting
-it whole, and running the census:
+The census and the CLI's `--report` sidecar count the same things by
+different routes — the census over a directory of intermediate JSON, the
+sidecar over one run's inputs — and must agree on `converted`. Reproduce
+either column by downloading the collection (below), converting it whole,
+and running the census:
 
     python tools/corpus/bpmai_to_json.py bpmai/models /tmp/all
     python tools/corpus/census.py /tmp/all

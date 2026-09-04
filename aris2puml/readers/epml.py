@@ -25,7 +25,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from aris2puml.model import Edge, Lane, Node, Process
+from aris2puml.model import Edge, Lane, Node, Note, Process
 from aris2puml.readers.json_ import ReadError
 
 KINDS = {"function": "function", "event": "event",
@@ -42,8 +42,14 @@ def _label(el: ET.Element) -> str:
     return " ".join((el.findtext("name") or "").split())
 
 
-def convert_epc(epc: ET.Element, prefix: str = "EPML") -> Process:
-    """One ``<epc>`` element → Process (unvalidated; callers validate)."""
+def convert_epc(epc: ET.Element, prefix: str = "EPML",
+                notes: list[Note] | None = None) -> Process:
+    """One ``<epc>`` element → Process (unvalidated; callers validate).
+
+    ``notes``, when given, receives one :class:`Note` per element the
+    contract has no place for — the fidelity sidecar's record of what was
+    dropped. Without it, dropping is silent, as before.
+    """
     epc_id = epc.get("epcId") or "?"
     lanes: dict[str, str] = {}
     nodes: list[Node] = []
@@ -62,8 +68,16 @@ def convert_epc(epc: ET.Element, prefix: str = "EPML") -> Process:
             if flow is not None:
                 edges.append(Edge(flow.get("source", ""), flow.get("target", "")))
     for child in epc:
-        kind = KINDS.get(_local(child.tag))
+        tag = _local(child.tag)
+        kind = KINDS.get(tag)
         if kind is None:
+            # Data fields, applications, graphics, relations, arcs: the
+            # structural ones were consumed above; the rest have no place.
+            if notes is not None and tag not in ("arc", "relation", "graphics", *LANE_TAGS):
+                nid = child.get("id", "") or tag
+                notes.append(Note("unsupported-element", nid,
+                                  f"{nid}: <{tag}> {_label(child) or ''}".rstrip()
+                                  + " has no place in the contract; dropped"))
             continue
         nid = child.get("id", "")
         lane = None
@@ -78,6 +92,11 @@ def convert_epc(epc: ET.Element, prefix: str = "EPML") -> Process:
             ref=child.get("linkToEpcId") if kind == "interface" else None,
         ))
     used = {n.lane for n in nodes if n.lane}
+    if notes is not None:
+        for lid, nm in lanes.items():
+            if lid not in used:
+                notes.append(Note("unused-lane", lid,
+                                  f"{lid}: org unit {nm!r} is tied to no function; dropped"))
     return Process(
         id=f"{prefix}-{epc_id}",
         name=epc.get("name") or f"EPC {epc_id}",
@@ -88,7 +107,11 @@ def convert_epc(epc: ET.Element, prefix: str = "EPML") -> Process:
     )
 
 
-def read_epml(path: str | Path) -> list[Process]:
+def read_epml(path: str | Path,
+              notes: dict[str, list[Note]] | None = None) -> list[Process]:
+    """``notes``, when given, is filled per process id with what that EPC's
+    conversion dropped — a document may hold many EPCs, so one flat list
+    could not say which."""
     path = Path(path)
     source = path.as_posix()
     try:
@@ -101,7 +124,10 @@ def read_epml(path: str | Path) -> list[Process]:
     out: list[Process] = []
     bad: list[str] = []
     for epc in epcs:
-        proc = convert_epc(epc)
+        dropped: list[Note] = []
+        proc = convert_epc(epc, notes=dropped)
+        if notes is not None:
+            notes[proc.id] = dropped
         problems = proc.validate()
         if problems:
             bad.append(f"[{proc.id}] " + "; ".join(problems))

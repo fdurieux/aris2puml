@@ -13,8 +13,10 @@ from pathlib import Path
 
 from aris2puml import __version__
 from aris2puml.emit import emit, slug
+from aris2puml.model import REPORT_ONLY, Note
 from aris2puml.readers import READERS
 from aris2puml.readers.json_ import ReadError
+from aris2puml.report import Report
 from aris2puml.structure import StructureError, structure
 
 
@@ -31,32 +33,52 @@ def _parser() -> argparse.ArgumentParser:
                     help="run pumllint on the written diagrams (needs pumllint installed)")
     ap.add_argument("-c", "--config", help="pumllint config for --check")
     ap.add_argument("--fail-on", help="pumllint --fail-on for --check")
+    ap.add_argument("--report", metavar="PATH",
+                    help="write a fidelity sidecar (JSON) here: what each process dropped, "
+                         "approximated or refused; a refusal is recorded and the run goes on")
     ap.add_argument("--version", action="version", version=f"aris2puml {__version__}")
     return ap
 
 
-def convert(inputs: list[str], fmt: str, out: str) -> tuple[list[Path], list[str]]:
-    """Convert every process in ``inputs``; returns (written paths, warnings).
-    Raises ReadError / StructureError with the offending file and node."""
+def convert(inputs: list[str], fmt: str, out: str, collect: bool = False) -> Report:
+    """Convert every process in ``inputs`` and account for each one.
+
+    Raises ReadError / StructureError with the offending file and node —
+    unless ``collect`` is set, in which case a refusal is recorded on the
+    report and the run continues to the next process.
+    """
     read = READERS[fmt]
-    written: list[Path] = []
-    warnings: list[str] = []
+    report = Report()
     for inp in inputs:
-        for proc in read(inp):
+        path = Path(inp)
+        report.inputs.append(path.as_posix())
+        dropped: dict[str, list[Note]] = {}
+        try:
+            procs = read(inp, dropped)
+        except ReadError as exc:
+            if not collect:
+                raise
+            report.refused(path, str(exc))
+            continue
+        for proc in procs:
             try:
                 s = structure(proc)
             except StructureError as exc:
-                raise StructureError(f"{Path(inp).as_posix()} [{proc.id}]: {exc}") from exc
+                if not collect:
+                    raise StructureError(f"{path.as_posix()} [{proc.id}]: {exc}") from exc
+                report.refused(path, str(exc), proc.id, proc.name)
+                continue
             text = emit(proc, s)
-            warnings += [f"{Path(inp).as_posix()} [{proc.id}]: {w}" for w in s.warnings]
+            target: Path | None = None
             if out == "-":
                 sys.stdout.write(text)
             else:
                 target = Path(out) / f"{slug(proc.name)}.puml"
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(text, encoding="utf-8", newline="\n")
-                written.append(target)
-    return written, warnings
+            report.converted(path, proc.id, proc.name, target,
+                             dropped.get(proc.id, []) + s.notes)
+    return report
 
 
 def _check(paths: list[Path], config: str | None, fail_on: str | None) -> int:
@@ -80,16 +102,31 @@ def main(argv: list[str] | None = None) -> int:
         print("aris2puml: --check needs files, not '-'", file=sys.stderr)
         return 2
     try:
-        written, warnings = convert(args.inputs, args.fmt, args.out)
+        report = convert(args.inputs, args.fmt, args.out, collect=bool(args.report))
     except (ReadError, StructureError) as exc:
         print(f"aris2puml: {exc}", file=sys.stderr)
         return 2
-    for w in warnings:
-        print(f"aris2puml: warning: {w}", file=sys.stderr)
-    for p in written:
+    for r in report.records:
+        if r.status == "refused":
+            where = f"{r.input} [{r.id}]: " if r.id is not None else ""
+            print(f"aris2puml: {where}{r.reason}", file=sys.stderr)
+            continue
+        for n in r.notes:
+            if n.code not in REPORT_ONLY:
+                print(f"aris2puml: warning: {r.input} [{r.id}]: {n.text}", file=sys.stderr)
+    for p in report.written:
         print(f"wrote {p.as_posix()}")
+    if args.report:
+        try:
+            report.write(args.report)
+        except OSError as exc:
+            print(f"aris2puml: cannot write report: {exc}", file=sys.stderr)
+            return 2
+        print(f"wrote {Path(args.report).as_posix()}")
+    if report.any_refused:
+        return 2
     if args.check:
-        return _check(written, args.config, args.fail_on)
+        return _check(report.written, args.config, args.fail_on)
     return 0
 
 

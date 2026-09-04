@@ -32,7 +32,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import NamedTuple
 
-from aris2puml.model import Node, Process
+from aris2puml.model import Node, Note, Process
 
 CONNECTORS = ("xor", "and", "or")
 EXIT = "$exit"
@@ -119,7 +119,11 @@ JOINWORD = {"xor": " or ", "and": " and ", "or": " and/or "}
 @dataclass
 class Structured:
     blocks: list
-    warnings: list[str] = field(default_factory=list)
+    notes: list[Note] = field(default_factory=list)
+
+    @property
+    def warnings(self) -> list[str]:
+        return [n.text for n in self.notes]
 
 
 # -- graph helpers ---------------------------------------------------------
@@ -187,7 +191,7 @@ def _back_edges(proc: Process, starts: list[str]) -> list[tuple[str, str]]:
 class _Walker:
     def __init__(self, proc: Process):
         self.p = proc
-        self.warnings: list[str] = []
+        self.notes: list[Note] = []
         self.starts = [n.id for n in proc.nodes if not proc.predecessors(n.id)]
         if not self.starts:
             raise StructureError("no start node: every node has a predecessor")
@@ -426,7 +430,8 @@ class _Walker:
             for u in self._upstream(q) | {q}:
                 self._mark(u)
         label = JOINWORD[n.kind].join(self._tree_label(q) for q in entry)
-        self.warnings.append(f"{cur}: external trigger joins mid-process ({n.kind}): {label}")
+        self.notes.append(Note("mid-flow-trigger", cur,
+                               f"{cur}: external trigger joins mid-process ({n.kind}): {label}"))
         return Trigger(n, label)
 
     def _nearest(self, cands: set[str]) -> str | None:
@@ -502,7 +507,8 @@ class _Walker:
         if kind == "xor":
             return Decision(virtual, "Trigger?", branches), labels
         if kind == "or":
-            self.warnings.append("start: OR-joined start events have no activity-diagram equivalent; emitted as fork")
+            self.notes.append(Note("or-start-events", "start",
+                                   "start: OR-joined start events have no activity-diagram equivalent; emitted as fork"))
         return Parallel(virtual, bodies), labels
 
     def entry(self) -> tuple[list, str | None]:
@@ -554,9 +560,8 @@ class _Walker:
                     raise StructureError(f"branch of {n.id} via {s} does not reach join {stop}")
                 bodies.append(body)
             if n.kind == "or":
-                self.warnings.append(
-                    f"{n.id}: OR connector has no activity-diagram equivalent; emitted as fork"
-                )
+                self.notes.append(Note("or-connector", n.id,
+                    f"{n.id}: OR connector has no activity-diagram equivalent; emitted as fork"))
             block = Parallel(n, bodies)
         if stop is None:
             return [block], None
@@ -641,15 +646,13 @@ class _Walker:
                 self._mark(e)
             if tail.dropped:
                 names = ", ".join(self.p.node(e).name for e in tail.dropped)
-                self.warnings.append(
+                self.notes.append(Note("return-path-events", split,
                     f"{split}: `backward` carries one action and no arrow, so the return "
-                    f"path's event(s) are dropped: {names}"
-                )
+                    f"path's event(s) are dropped: {names}"))
             if backward.lane is not None:
-                self.warnings.append(
+                self.notes.append(Note("return-path-lane", tail.backward,
                     f"{tail.backward}: a `backward` action takes no swimlane, so its "
-                    f"org unit is dropped"
-                )
+                    f"org unit is dropped"))
         label, start, ends = self._branch_start(exits[0], "xor")
         self._after_loop = None if ends else start
         cond = (back_label or label or hn.name or "Again") + "?"
@@ -667,4 +670,4 @@ def structure(proc: Process) -> Structured:
     unreached = [n.id for n in proc.nodes if n.id not in w.seen]
     if unreached:
         raise StructureError("unreachable nodes: " + ", ".join(unreached))
-    return Structured(blocks, w.warnings)
+    return Structured(blocks, w.notes)
