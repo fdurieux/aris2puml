@@ -1,13 +1,30 @@
 /*
  * aris2puml — ARIS report script: EPC model → intermediate JSON (version 1).
  *
- * UNTESTED TEMPLATE. Written against the documented ARIS Script API
- * (ArisData, Model.ObjOccList, ObjOcc.OutEdges, Constants.OT_*) without an
- * ARIS installation to run it on. Expect to adjust the object-type
- * constants and the attribute lookups to your ARIS version and method
- * filter before first use. The JSON shape it writes is the contract in
- * aris2puml/readers/json_.py; keep that stable and everything downstream
- * works.
+ * UNTESTED TEMPLATE — never run inside ARIS. Statically checked
+ * (2026-09-04) against the ARIS Report Scripting Best Practices guide
+ * (docs.aris.com, 10.0.27) and ARIS Community report code:
+ *
+ *   confirmed   ArisData.getSelectedModels, Model.ObjOccList, ObjOcc.ObjDef,
+ *               ObjDef.TypeNum, ObjOcc.SymbolNum, ObjDef.AssignedModels,
+ *               ObjOcc.OutEdges/InEdges, CxnOcc.TargetObjOcc/SourceObjOcc,
+ *               Constants.EDGES_ALL, OT_FUNC, OT_EVT, OT_RULE, ST_PRCS_IF,
+ *               Context.getSelectedFile, Context.getSelectedLanguage
+ *   unconfirmed Item.Attribute(...).getValue()/IsMaximized(),
+ *               Context.createOutputObject(OUTTEXT)/OutputTxt/WriteReport,
+ *               ST_OPR_XOR_1/AND_1/OR_1 (and the _2 variants), AT_ID,
+ *               AT_PERSON_RESPONS, OT_ORG_UNIT, OT_POS, OT_PERS_TYPE, and
+ *               whether OutEdges' argument is a direction or a kind filter
+ *
+ * Node ids are the object definition GUID plus the occurrence index in
+ * the model ("<guid>#<n>"), so the same definition occurring twice yields
+ * two nodes without any occurrence-GUID call, which could not be
+ * confirmed to exist. Expect to adjust the unconfirmed names to your ARIS
+ * version and method filter before first use. The JSON shape it writes is
+ * the contract in aris2puml/readers/json_.py; keep that stable and
+ * everything downstream works. For traversing through rule objects the
+ * ARIS Community pattern (Seletkov, 2014: recurse over InEdges/OutEdges,
+ * passing OT_RULE, with a visited map) is the reference.
  *
  * Usage (ARIS Architect): select one or more EPC models, run the report,
  * save the returned text as <model>.json, then:  aris2puml <model>.json
@@ -41,6 +58,8 @@ function attr(item, attrNum) {
 function exportModel(model) {
   var lanes = [], laneIds = {}, nodes = [], edges = [], laneOf = {};
   var occs = model.ObjOccList();
+  var occId = {};                                 // occurrence → stable node id
+  for (var o = 0; o < occs.length; o++) occId[occs[o]] = occs[o].ObjDef().GUID() + "#" + o;
 
   // pass 1: lanes (org units attached to functions) and control-flow nodes
   for (var i = 0; i < occs.length; i++) {
@@ -53,7 +72,7 @@ function exportModel(model) {
     }
     if (!kind) continue;                          // info objects, systems, documents: dropped
     if (kind === "connector") kind = connectorKind(occ);
-    var node = { id: occ.ObjOccGUID ? occ.ObjOccGUID() : def.GUID(), kind: kind };
+    var node = { id: occId[occ], kind: kind };
     if (kind !== "xor" && kind !== "and" && kind !== "or") node.name = def.Name(-1);
     if (kind === "function" && occ.SymbolNum() == INTERFACE_SYMBOL) {
       node.kind = "interface";
@@ -70,8 +89,7 @@ function exportModel(model) {
     for (var k = 0; k < out.length; k++) {
       var dst = out[k].TargetObjOcc();
       var sk = KIND[src.ObjDef().TypeNum()], dk = KIND[dst.ObjDef().TypeNum()];
-      var sid = src.ObjOccGUID ? src.ObjOccGUID() : src.ObjDef().GUID();
-      var did = dst.ObjOccGUID ? dst.ObjOccGUID() : dst.ObjDef().GUID();
+      var sid = occId[src], did = occId[dst];
       if (sk === "lane" && dk === "function") { laneOf[did] = src.ObjDef().GUID(); continue; }
       if (dk === "lane" && sk === "function") { laneOf[sid] = dst.ObjDef().GUID(); continue; }
       if (!sk || !dk || sk === "lane" || dk === "lane") continue;

@@ -55,6 +55,13 @@ Two rules that follow from the pin to pumllint:
   the BPM Academic Initiative — the SAP five fetched, not redistributed,
   their licence being incompatible with ours) but not for the report
   script, which remains unrun.*
+  *2026-09-04, later: the script's API calls were checked statically
+  against the ARIS Report Scripting Best Practices guide and ARIS
+  Community report code — confirmed and unconfirmed names are listed in
+  the script's header; the one call found nowhere (`ObjOccGUID`) was
+  replaced by a definition-GUID-plus-index id. Still unrun. A1 therefore
+  reads as two halves: A1a, real-world shapes — served by the corpus and
+  the census; A1b, the script at runtime — adopter-gated, unchanged.*
 - [ ] **A2. Multiple start events** — the most common refusal a real EPC
   will hit ("Order received" / "Order changed" joined by an XOR). Design:
   an XOR join of start events → `start` then an immediate `if`/`switch`
@@ -100,6 +107,15 @@ Two rules that follow from the pin to pumllint:
   Medium, UX-only; do after B1 shows which errors real users hit.
 
 ## Arc C — Second front-end (P2, gated)
+
+- [x] **C0. EPML reader (`--from epml`)** *(2026-09-04)* — shipped ahead of
+  C1 on evidence rather than demand: EPML is the one open EPC interchange
+  format, and the only one with a real corpus behind it (the 604-process
+  SAP reference model, `tests/fixtures/corpus/`). The mapping lives in
+  `aris2puml/readers/epml.py`; `tools/corpus/epml_to_json.py` delegates
+  to it so fixtures and reader cannot drift. Roles tied to functions
+  become lanes; `processInterface` becomes an interface. Not a reader for
+  Oryx/Signavio JSON — that stays corpus tooling (`bpmai_to_json.py`).
 
 - [ ] **C1. BPMN 2.0 XML reader (`--from bpmn`)** — tasks → function,
   lanes → lane, exclusive/parallel/inclusive gateways → xor/and/or,

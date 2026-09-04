@@ -16,6 +16,7 @@ pip install aris2puml            # + pumllint for --check: pip install "aris2pum
 aris2puml order_to_cash.json -o processes/
 aris2puml order_to_cash.json -o processes/ --check -c conventions.toml --fail-on major
 aris2puml order_to_cash.json -o -            # print the diagram
+aris2puml --from epml SAPModels.epml -o out/  # every EPC in an EPML document
 ```
 
 Exit codes: `0` converted (and, with `--check`, nothing at or above
@@ -62,8 +63,13 @@ Information objects, documents and IT systems are not part of the
 contract: the activity diagram has no place for them and the linter
 nothing to check on them.
 
-The contract is notation-neutral. A BPMN 2.0 XML reader targeting the
-same `Process` model is the intended second front-end; none ships yet.
+The contract is notation-neutral, and it is not the only input:
+`--from epml` reads EPML, the open EPC interchange format that ProM, EPC
+Tools, bflow* and the academic model collections speak (same mapping,
+`aris2puml/readers/epml.py`; roles tied to functions become lanes,
+process interfaces become interfaces). A BPMN 2.0 XML reader targeting
+the same `Process` model would be a third front-end; none ships, and the
+roadmap says when one would.
 
 ## What comes out
 
