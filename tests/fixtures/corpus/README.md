@@ -110,7 +110,7 @@ roadmap decision (Arc C), not something this corpus presumes.
 | File | Models | Size | Today |
 |------|--------|------|-------|
 | `mortgage-application.json` | mortgage origination: application check, credit history, approval, property inspection, deed, mortgage insurance, disbursement | 11 f / 17 e / 7 xor / 1 and / 1 or, 41 edges | refused — back edge from an event that is not an XOR outcome (B1) |
-| `mortgage-application-variant.json` | the same process modelled by a second author, with a rework loop and a disconnected fragment | 13 f / 18 e / 6 xor / 1 and / 1 or, 42 edges | refused — the loop does not leave from an XOR split (B1) |
+| `mortgage-application-variant.json` | the same process modelled by a second author, with a rework loop and a disconnected fragment | 13 f / 18 e / 6 xor / 1 and / 1 or, 42 edges | its rework loop is now a `while`; still refused, on an AND split that joins at an OR |
 | `project-financing-to-be.json` | customer-financing to-be process across two org units, escalating to the bank for release of funds | 15 f / 16 e / 6 xor / 3 and, 39 edges, 2 lanes | **converts** (A2: two entry events become the opening `if`) |
 | `credit-application-de.json` | credit application over two intake channels: record customer data, check collateral, set conditions or reject | 5 f / 7 e / 2 xor / 2 and, 16 edges | **converts** (A2) |
 | `sap/sap-loan-origination.json` † | SAP TR-LO loan origination: inquiry, application, credit standing, approval, offer, contract, disbursement | 7 f / 12 e / 4 xor, 22 edges | **converts**, with a mid-flow trigger warning (A2) |

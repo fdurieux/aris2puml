@@ -14,6 +14,7 @@ import re
 from aris2puml.model import Process
 from aris2puml.structure import (
     JOINWORD, Action, Branch, Decision, EventArrow, Loop, Parallel, Stop, Structured, Trigger,
+    While,
 )
 
 
@@ -54,7 +55,7 @@ class _Emitter:
                     a = _Emitter._first_action(body)
                     if a:
                         return a
-            if isinstance(b, Loop):
+            if isinstance(b, (Loop, While)):
                 a = _Emitter._first_action(b.body)
                 if a:
                     return a
@@ -79,6 +80,8 @@ class _Emitter:
                 self.parallel(b, depth)
             elif isinstance(b, Loop):
                 self.loop(b, depth)
+            elif isinstance(b, While):
+                self.while_(b, depth)
             elif isinstance(b, Trigger):
                 self.trigger(b, depth)
             else:  # pragma: no cover
@@ -143,6 +146,19 @@ class _Emitter:
         self.out(depth, tail)
         self.lane = None
         end = getattr(lp, "body_end", None)
+        if end is not None:
+            self.blocks([end], depth)
+
+    def while_(self, w: While, depth: int) -> None:
+        head = f"while ({w.condition})"
+        if w.back_label:
+            head += f" is{self._label(w.back_label)}"
+        self.out(depth, head)
+        self.lane = None
+        self.blocks(w.body, depth + 1)
+        self.out(depth, f"endwhile{self._label(w.exit_label)}")
+        self.lane = None
+        end = getattr(w, "body_end", None)
         if end is not None:
             self.blocks([end], depth)
 
