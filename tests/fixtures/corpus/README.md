@@ -159,7 +159,7 @@ day). After it, re-run over the SAP set with the same command:*
 | loop shapes (B1) | 4.1 % |
 | reader refused (unnamed element) | 2.5 % |
 | A2 residual: no entry at all (every start is a mid-flow trigger) | 0.5 % |
-| unstructured cycle, unreachable nodes, connector-less splits | 1.7 % |
+| unstructured cycle, connector-less splits, entry branches missing their join | 1.8 % |
 
 *The BPMAI column is not re-run: its 388 MB archive is not cached here.
 Its A2 share was 23.5 %, most of it the two-entry shape the four kept
