@@ -19,6 +19,7 @@ aris2puml order_to_cash.json -o processes/
 aris2puml order_to_cash.json -o processes/ --check -c conventions.toml --fail-on major
 aris2puml order_to_cash.json -o -            # print the diagram
 aris2puml --from epml SAPModels.epml -o out/  # every EPC in an EPML document
+aris2puml corpus/*.json -o out/ --report sidecar.json  # + what each process dropped, approximated or refused
 ```
 
 Exit codes: `0` converted (and, with `--check`, nothing at or above
@@ -126,6 +127,27 @@ offending node named:
 
 Structure the EPC first. The converter will not invent structure the
 model does not have.
+
+## What was lost: the fidelity sidecar
+
+`--report sidecar.json` writes, per run, the account the diagram itself
+cannot carry — for every process, what was:
+
+- **approximated** — the shape survives with its meaning bent: an OR split
+  emitted as `fork`, a mid-flow trigger folded into an arrow label;
+- **dropped** — an element with no place in the diagram: the events and the
+  org unit on a `backward` return path, and, reading EPML, the information
+  objects and IT systems the contract never carried;
+- **refused** — the process, with the connector and the reason, verbatim.
+
+A summary block gives the number a process owner reads
+(`converted_percent`); the per-process records are the evidence the
+roadmap is prioritised on. With `--report` a refusal is recorded and the
+run **continues** to the next process instead of stopping at the first;
+the exit code is still `2` when anything was refused. Reader-level drops
+go into the sidecar only — they are the contract working as documented,
+not a per-run surprise — while the structuring pass's approximations and
+drops are also warned on stderr, as before.
 
 How often that bites, measured over two public EPC collections: 74 % of
 the 604 SAP reference models convert today (26 % before several start

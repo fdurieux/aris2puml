@@ -96,11 +96,24 @@ Two rules that follow from the pin to pumllint:
   of the 4332 BPMAI EPCs are refused for this and nothing else — the
   largest single refusal in both collections, and the one that blocks
   every credit process in the corpus.*
-- [ ] **A3. Fidelity sidecar** — per conversion, a JSON sidecar listing
-  what was dropped (information objects, systems), approximated (OR →
-  fork), refused (process, connector, reason). Turns "it converted" into a
-  number a process owner can read, and is the evidence base for every
-  later priority call. `--report sidecar.json` in `cli.py`.
+- [x] **A3. Fidelity sidecar** *(2026-09-04)* — shipped as
+  `--report sidecar.json`: a versioned JSON document with a summary block
+  (`converted_percent` is the number a process owner reads) and one record
+  per process — *approximated* (OR → `fork`, a mid-flow trigger folded into
+  an arrow label), *dropped* (a `backward` return path's events and org
+  unit; reading EPML, the information objects and IT systems the contract
+  never carried), *refused* (the connector and reason, verbatim). The
+  structuring pass now records `Note(code, node, text)` rather than prose,
+  and readers take an optional per-process notes channel, so the sidecar
+  never re-parses a warning; the stderr wording is unchanged. With the
+  flag a refusal is recorded and the run continues to the next process,
+  which is what makes a corpus measurable; the exit code is still 2 when
+  anything was refused, and without the flag behaviour is exactly as
+  before. Over the nine-model corpus it agrees with `tools/corpus/census.py`
+  to the process (6 of 9, 66.7 %). One thing it exposes rather than fixes:
+  outputs are named from the process *name*, so two processes sharing a
+  name overwrite one file — the sidecar shows both records pointing at it.
+  The 0.3.0 criterion, "≥ 90 % converts, measured by A3", is now measurable.
 - [ ] **A4. PyPI release 0.2.0** once A1 has one real fixture. Until then
   the README says "install from git".
 

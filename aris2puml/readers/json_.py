@@ -22,7 +22,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from aris2puml.model import Edge, Lane, Node, Process
+from aris2puml.model import Edge, Lane, Node, Note, Process
 
 
 class ReadError(ValueError):
@@ -59,7 +59,10 @@ def _one(doc: dict, source: str) -> Process:
     return proc
 
 
-def read_json(path: str | Path) -> list[Process]:
+def read_json(path: str | Path,
+              notes: dict[str, list[Note]] | None = None) -> list[Process]:
+    """``notes`` is accepted for the reader interface and never written to:
+    the version-1 contract carries nothing this reader would have to drop."""
     path = Path(path)
     try:
         doc = json.loads(path.read_text(encoding="utf-8"))
