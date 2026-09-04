@@ -1,0 +1,371 @@
+{
+ "version": 1,
+ "process": {
+  "id": "BPMAI-1030995632",
+  "name": "Finanzierung SOLL",
+  "owner": ""
+ },
+ "lanes": [
+  {
+   "id": "sid-8409037D-440E-41A0-B340-13730FBD8380",
+   "name": "DT Smart Pay"
+  },
+  {
+   "id": "sid-E6A3F715-BCAF-47EC-B1C4-A0F42134C7FD",
+   "name": "Vertrieb"
+  }
+ ],
+ "nodes": [
+  {
+   "id": "sid-70724E9A-6D7F-400C-B056-2B5DF16450ED",
+   "kind": "event",
+   "name": "Auftrag ist positiv"
+  },
+  {
+   "id": "sid-EEA34DE2-FEF1-40D8-8CB5-D22E80FAE44D",
+   "kind": "event",
+   "name": "Auftrag ist negativ"
+  },
+  {
+   "id": "sid-6DC172C2-D03F-45F7-8ABC-49B6FCD4DE67",
+   "kind": "function",
+   "name": "Aufnahme des Auftrags ins ERP System"
+  },
+  {
+   "id": "sid-B01C3D50-1A86-4285-B8BE-4653C2AD4DA0",
+   "kind": "function",
+   "name": "Analyse des Fehlers im Auftrag"
+  },
+  {
+   "id": "sid-24D2A724-23EF-4333-9611-4BB4BAB76DA7",
+   "kind": "event",
+   "name": "Problem ist Technisch"
+  },
+  {
+   "id": "sid-240C2200-636A-441A-A658-570D84D7D325",
+   "kind": "event",
+   "name": "Problem ist Finanzierung"
+  },
+  {
+   "id": "sid-56E69466-CF60-4425-BA1A-064ADD835699",
+   "kind": "xor"
+  },
+  {
+   "id": "sid-8FEEF43F-01F3-4843-B789-13A9FA7F4F55",
+   "kind": "function",
+   "name": "Kundengespräch",
+   "lane": "sid-E6A3F715-BCAF-47EC-B1C4-A0F42134C7FD"
+  },
+  {
+   "id": "sid-7CEF68C1-B997-4966-9A99-4E4FB47D34EB",
+   "kind": "function",
+   "name": "Kundengespräch",
+   "lane": "sid-8409037D-440E-41A0-B340-13730FBD8380"
+  },
+  {
+   "id": "sid-923EEA0C-F25E-41F3-9993-4DF11416E2BE",
+   "kind": "xor"
+  },
+  {
+   "id": "sid-FBCEFEC1-EFB6-49B7-8FE7-6EFB7B828365",
+   "kind": "event",
+   "name": "Finanzierungsteam ist zuständig"
+  },
+  {
+   "id": "sid-2FA4C669-D664-465B-9009-F795D05BF928",
+   "kind": "event",
+   "name": "Kunde kümmert sich um Finanzierung"
+  },
+  {
+   "id": "sid-D49EB5C2-16B2-4C46-BEB8-9445C6405041",
+   "kind": "function",
+   "name": "Konzept erstellen"
+  },
+  {
+   "id": "sid-F27AA5ED-6922-4348-97DE-B05D4ED02A47",
+   "kind": "event",
+   "name": "Konzept wird vorgestellt"
+  },
+  {
+   "id": "sid-27222800-DE2E-47AE-AA6E-9CAF48CAAED4",
+   "kind": "xor"
+  },
+  {
+   "id": "sid-B2A3B37B-8722-4D0C-BFD0-4FBF76EA9C4D",
+   "kind": "event",
+   "name": "Kunde ist zufrieden"
+  },
+  {
+   "id": "sid-A45DDCB9-039F-4F98-908A-E292C34D9A1F",
+   "kind": "event",
+   "name": "Kunde ist unzufrieden"
+  },
+  {
+   "id": "sid-39CCEAB5-92BA-49B8-AC33-0F985513315F",
+   "kind": "function",
+   "name": "Gespräche mit der Bank"
+  },
+  {
+   "id": "sid-2711B70C-C82C-416D-846A-0AE67F0082E0",
+   "kind": "xor"
+  },
+  {
+   "id": "sid-BE511E67-1F63-478C-856B-28C368B1B65C",
+   "kind": "event",
+   "name": "Kunde beendet Auftrag"
+  },
+  {
+   "id": "sid-48968CCB-024A-44F7-9BC8-89A61560249C",
+   "kind": "event",
+   "name": "Kunde wünscht neues Konzept"
+  },
+  {
+   "id": "sid-63156547-2F85-4232-86A3-CDDB1DD52348",
+   "kind": "event",
+   "name": "Bank gibt Geld frei"
+  },
+  {
+   "id": "sid-988EDC54-557E-4D61-AEFC-97E64A38A16D",
+   "kind": "event",
+   "name": "Bank gibt Geld nicht frei"
+  },
+  {
+   "id": "sid-BA8DA0E8-28B9-4091-BC76-85E66BF1B791",
+   "kind": "xor"
+  },
+  {
+   "id": "sid-7D621F40-DE3D-437A-8C0A-3666C2D1242E",
+   "kind": "function",
+   "name": "Kunde entschiedet"
+  },
+  {
+   "id": "sid-B0F60A31-74E8-4C84-9D36-E74CB16D5C03",
+   "kind": "function",
+   "name": "Kunde entscheidet"
+  },
+  {
+   "id": "sid-17D2CEAF-F95B-4946-B09E-CA38AA237EF5",
+   "kind": "event",
+   "name": "Auftrag ist eingegangen"
+  },
+  {
+   "id": "sid-B0A4BEF4-5AFB-42E9-B477-F20BE91533FB",
+   "kind": "event",
+   "name": "Finanzstruktur Kunde wird geprüft"
+  },
+  {
+   "id": "sid-BD30DE6F-04A4-48F3-A75C-9C580CC429E5",
+   "kind": "and"
+  },
+  {
+   "id": "sid-6EEA69AF-6201-40C2-948A-8FD26E85734A",
+   "kind": "event",
+   "name": "Auftrag wird auf Durchführ-ung geprüft"
+  },
+  {
+   "id": "sid-46DB0202-840B-4FB8-8859-ED8A02292F05",
+   "kind": "function",
+   "name": "Auftrag erfasst"
+  },
+  {
+   "id": "sid-700AB974-E42D-4CAF-8878-9B66F0A718A7",
+   "kind": "and"
+  },
+  {
+   "id": "sid-BADC2A65-A960-4B16-A4C1-58A49040DAEC",
+   "kind": "function",
+   "name": "Zusammenfassung der Ergebnisse"
+  },
+  {
+   "id": "sid-5784447E-9D69-4F1F-8332-2A54A5E5787E",
+   "kind": "xor"
+  },
+  {
+   "id": "sid-B7C87AD1-F988-48DC-BFD3-6F8D302A9D9E",
+   "kind": "function",
+   "name": "Aufnahme ins ERP System"
+  },
+  {
+   "id": "sid-8F57795A-A366-4D69-9DA9-B87D19606426",
+   "kind": "function",
+   "name": "Fehlersuche"
+  },
+  {
+   "id": "sid-263AE565-EBA9-4DCC-8754-BB1A899FA7A9",
+   "kind": "and"
+  },
+  {
+   "id": "sid-9BF10117-C0AA-48A4-B264-819802C4F2F5",
+   "kind": "function",
+   "name": "Konzept neu erstellen"
+  },
+  {
+   "id": "sid-51E31107-671F-4F86-A9F6-AEECFFBDA148",
+   "kind": "function",
+   "name": "Aufnahme ins ERP System"
+  },
+  {
+   "id": "sid-5286F3A8-D264-4F79-A943-AE29FB7E07AD",
+   "kind": "function",
+   "name": "Finanzteam entwickelt neues Konzept"
+  }
+ ],
+ "edges": [
+  {
+   "from": "sid-70724E9A-6D7F-400C-B056-2B5DF16450ED",
+   "to": "sid-6DC172C2-D03F-45F7-8ABC-49B6FCD4DE67"
+  },
+  {
+   "from": "sid-EEA34DE2-FEF1-40D8-8CB5-D22E80FAE44D",
+   "to": "sid-B01C3D50-1A86-4285-B8BE-4653C2AD4DA0"
+  },
+  {
+   "from": "sid-B01C3D50-1A86-4285-B8BE-4653C2AD4DA0",
+   "to": "sid-56E69466-CF60-4425-BA1A-064ADD835699"
+  },
+  {
+   "from": "sid-24D2A724-23EF-4333-9611-4BB4BAB76DA7",
+   "to": "sid-8FEEF43F-01F3-4843-B789-13A9FA7F4F55"
+  },
+  {
+   "from": "sid-240C2200-636A-441A-A658-570D84D7D325",
+   "to": "sid-7CEF68C1-B997-4966-9A99-4E4FB47D34EB"
+  },
+  {
+   "from": "sid-56E69466-CF60-4425-BA1A-064ADD835699",
+   "to": "sid-24D2A724-23EF-4333-9611-4BB4BAB76DA7"
+  },
+  {
+   "from": "sid-56E69466-CF60-4425-BA1A-064ADD835699",
+   "to": "sid-240C2200-636A-441A-A658-570D84D7D325"
+  },
+  {
+   "from": "sid-7CEF68C1-B997-4966-9A99-4E4FB47D34EB",
+   "to": "sid-923EEA0C-F25E-41F3-9993-4DF11416E2BE"
+  },
+  {
+   "from": "sid-923EEA0C-F25E-41F3-9993-4DF11416E2BE",
+   "to": "sid-FBCEFEC1-EFB6-49B7-8FE7-6EFB7B828365"
+  },
+  {
+   "from": "sid-923EEA0C-F25E-41F3-9993-4DF11416E2BE",
+   "to": "sid-2FA4C669-D664-465B-9009-F795D05BF928"
+  },
+  {
+   "from": "sid-2FA4C669-D664-465B-9009-F795D05BF928",
+   "to": "sid-B7C87AD1-F988-48DC-BFD3-6F8D302A9D9E"
+  },
+  {
+   "from": "sid-D49EB5C2-16B2-4C46-BEB8-9445C6405041",
+   "to": "sid-F27AA5ED-6922-4348-97DE-B05D4ED02A47"
+  },
+  {
+   "from": "sid-F27AA5ED-6922-4348-97DE-B05D4ED02A47",
+   "to": "sid-7D621F40-DE3D-437A-8C0A-3666C2D1242E"
+  },
+  {
+   "from": "sid-27222800-DE2E-47AE-AA6E-9CAF48CAAED4",
+   "to": "sid-B2A3B37B-8722-4D0C-BFD0-4FBF76EA9C4D"
+  },
+  {
+   "from": "sid-27222800-DE2E-47AE-AA6E-9CAF48CAAED4",
+   "to": "sid-A45DDCB9-039F-4F98-908A-E292C34D9A1F"
+  },
+  {
+   "from": "sid-B2A3B37B-8722-4D0C-BFD0-4FBF76EA9C4D",
+   "to": "sid-39CCEAB5-92BA-49B8-AC33-0F985513315F"
+  },
+  {
+   "from": "sid-A45DDCB9-039F-4F98-908A-E292C34D9A1F",
+   "to": "sid-B0F60A31-74E8-4C84-9D36-E74CB16D5C03"
+  },
+  {
+   "from": "sid-39CCEAB5-92BA-49B8-AC33-0F985513315F",
+   "to": "sid-BA8DA0E8-28B9-4091-BC76-85E66BF1B791"
+  },
+  {
+   "from": "sid-2711B70C-C82C-416D-846A-0AE67F0082E0",
+   "to": "sid-BE511E67-1F63-478C-856B-28C368B1B65C"
+  },
+  {
+   "from": "sid-2711B70C-C82C-416D-846A-0AE67F0082E0",
+   "to": "sid-48968CCB-024A-44F7-9BC8-89A61560249C"
+  },
+  {
+   "from": "sid-48968CCB-024A-44F7-9BC8-89A61560249C",
+   "to": "sid-5286F3A8-D264-4F79-A943-AE29FB7E07AD"
+  },
+  {
+   "from": "sid-63156547-2F85-4232-86A3-CDDB1DD52348",
+   "to": "sid-51E31107-671F-4F86-A9F6-AEECFFBDA148"
+  },
+  {
+   "from": "sid-988EDC54-557E-4D61-AEFC-97E64A38A16D",
+   "to": "sid-263AE565-EBA9-4DCC-8754-BB1A899FA7A9"
+  },
+  {
+   "from": "sid-BA8DA0E8-28B9-4091-BC76-85E66BF1B791",
+   "to": "sid-988EDC54-557E-4D61-AEFC-97E64A38A16D"
+  },
+  {
+   "from": "sid-BA8DA0E8-28B9-4091-BC76-85E66BF1B791",
+   "to": "sid-63156547-2F85-4232-86A3-CDDB1DD52348"
+  },
+  {
+   "from": "sid-7D621F40-DE3D-437A-8C0A-3666C2D1242E",
+   "to": "sid-27222800-DE2E-47AE-AA6E-9CAF48CAAED4"
+  },
+  {
+   "from": "sid-B0F60A31-74E8-4C84-9D36-E74CB16D5C03",
+   "to": "sid-2711B70C-C82C-416D-846A-0AE67F0082E0"
+  },
+  {
+   "from": "sid-17D2CEAF-F95B-4946-B09E-CA38AA237EF5",
+   "to": "sid-46DB0202-840B-4FB8-8859-ED8A02292F05"
+  },
+  {
+   "from": "sid-B0A4BEF4-5AFB-42E9-B477-F20BE91533FB",
+   "to": "sid-700AB974-E42D-4CAF-8878-9B66F0A718A7"
+  },
+  {
+   "from": "sid-BD30DE6F-04A4-48F3-A75C-9C580CC429E5",
+   "to": "sid-B0A4BEF4-5AFB-42E9-B477-F20BE91533FB"
+  },
+  {
+   "from": "sid-BD30DE6F-04A4-48F3-A75C-9C580CC429E5",
+   "to": "sid-6EEA69AF-6201-40C2-948A-8FD26E85734A"
+  },
+  {
+   "from": "sid-6EEA69AF-6201-40C2-948A-8FD26E85734A",
+   "to": "sid-700AB974-E42D-4CAF-8878-9B66F0A718A7"
+  },
+  {
+   "from": "sid-46DB0202-840B-4FB8-8859-ED8A02292F05",
+   "to": "sid-BD30DE6F-04A4-48F3-A75C-9C580CC429E5"
+  },
+  {
+   "from": "sid-700AB974-E42D-4CAF-8878-9B66F0A718A7",
+   "to": "sid-BADC2A65-A960-4B16-A4C1-58A49040DAEC"
+  },
+  {
+   "from": "sid-BADC2A65-A960-4B16-A4C1-58A49040DAEC",
+   "to": "sid-5784447E-9D69-4F1F-8332-2A54A5E5787E"
+  },
+  {
+   "from": "sid-5784447E-9D69-4F1F-8332-2A54A5E5787E",
+   "to": "sid-EEA34DE2-FEF1-40D8-8CB5-D22E80FAE44D"
+  },
+  {
+   "from": "sid-5784447E-9D69-4F1F-8332-2A54A5E5787E",
+   "to": "sid-70724E9A-6D7F-400C-B056-2B5DF16450ED"
+  },
+  {
+   "from": "sid-263AE565-EBA9-4DCC-8754-BB1A899FA7A9",
+   "to": "sid-8F57795A-A366-4D69-9DA9-B87D19606426"
+  },
+  {
+   "from": "sid-263AE565-EBA9-4DCC-8754-BB1A899FA7A9",
+   "to": "sid-9BF10117-C0AA-48A4-B264-819802C4F2F5"
+  }
+ ]
+}

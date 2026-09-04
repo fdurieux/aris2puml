@@ -50,12 +50,21 @@ Two rules that follow from the pin to pumllint:
   `tests/fixtures/real/` with its golden diagram. *Gate: an adopter with
   ARIS Architect. Owner: the adopter, with the maintainer pairing.* The
   cheapest item on this list and the highest-value one.
+  *2026-09-04: still open. A public corpus now stands in for the shapes
+  (`tests/fixtures/corpus/`, nine EPCs from the SAP reference model and
+  the BPM Academic Initiative — the SAP five fetched, not redistributed,
+  their licence being incompatible with ours) but not for the report
+  script, which remains unrun.*
 - [ ] **A2. Multiple start events** — the most common refusal a real EPC
   will hit ("Order received" / "Order changed" joined by an XOR). Design:
   an XOR join of start events → `start` then an immediate `if`/`switch`
   with each event as a branch label and empty bodies that merge; an AND
   join → `start` then `fork` with `-> Event;` per branch. Structural change
   in `structure.py` (`_Walker.__init__` start handling); emitter unchanged.
+  *2026-09-04: measured. 69.5 % of the 604 SAP reference EPCs and 23.5 %
+  of the 4332 BPMAI EPCs are refused for this and nothing else — the
+  largest single refusal in both collections, and the one that blocks
+  every credit process in the corpus.*
 - [ ] **A3. Fidelity sidecar** — per conversion, a JSON sidecar listing
   what was dropped (information objects, systems), approximated (OR →
   fork), refused (process, connector, reason). Turns "it converted" into a
@@ -70,6 +79,10 @@ Two rules that follow from the pin to pumllint:
   outcome event) to an XOR join. Add, each against a fixture from A1's
   corpus: test-at-top loops (`while`), loops whose body contains a
   split/join, two loops sharing a header.
+  *2026-09-04: second-largest refusal, at 19.8 % of BPMAI (0.7 % of the
+  SAP set, which barely models loops). `mortgage-application.json` and
+  its variant are both refused here: the back edge leaves from an event
+  that follows a function, not from an XOR outcome.*
 - [ ] **B2. `--strict`** — refuse OR connectors and any other
   approximation instead of warning, for teams gating on conversion
   fidelity. Small.

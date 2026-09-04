@@ -112,6 +112,16 @@ offending node named:
 Structure the EPC first. The converter will not invent structure the
 model does not have.
 
+How often that bites, measured over two public EPC collections: 26 % of
+the 604 SAP reference models and 32 % of the 4332 BPM Academic Initiative
+models convert today, and multiple start events alone account for 70 % and
+24 % of the rest. The nine EPCs those numbers were read off — a mortgage
+origination process among them — are in
+[`tests/fixtures/corpus/`](tests/fixtures/corpus/README.md) with the
+census and its method. Five of the nine are fetched rather than
+redistributed, their licence being incompatible with this one; one
+command builds them.
+
 ## Development
 
 ```bash

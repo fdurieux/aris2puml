@@ -1,0 +1,153 @@
+{
+ "version": 1,
+ "process": {
+  "id": "BPMAI-278909031",
+  "name": "EPK-Kreditantrag",
+  "owner": ""
+ },
+ "lanes": [],
+ "nodes": [
+  {
+   "id": "sid-EB72213A-544D-4E65-B3BE-E17D62F55BCB",
+   "kind": "event",
+   "name": "Kredit- antrag per Post"
+  },
+  {
+   "id": "sid-5BDE03FF-CA3C-4FCA-A677-8B0CB0D9E127",
+   "kind": "event",
+   "name": "Kredit- antrag am Schalter"
+  },
+  {
+   "id": "sid-00B9E0D3-9E91-4509-BCD9-88711903171B",
+   "kind": "xor"
+  },
+  {
+   "id": "sid-E73DD2E3-D7A8-4BE9-92D1-FDC8D41FC3DF",
+   "kind": "function",
+   "name": "Kundendaten erfassen"
+  },
+  {
+   "id": "sid-D5B15027-1A81-4DFB-8217-2A89C43188AB",
+   "kind": "function",
+   "name": "Sicherheiten prüfen"
+  },
+  {
+   "id": "sid-0068F6EB-0826-440C-AAF8-AE70EAF681AB",
+   "kind": "function",
+   "name": "Begründung für Ablehnung"
+  },
+  {
+   "id": "sid-F7FEFD58-CBE3-4AB4-A861-AFE2E96C3D1B",
+   "kind": "xor"
+  },
+  {
+   "id": "sid-087622AE-9FD7-43B9-BD38-5D67885BC9BE",
+   "kind": "and"
+  },
+  {
+   "id": "sid-2AED03BF-5FDB-4455-99BC-B431E9E33CC9",
+   "kind": "function",
+   "name": "Vertrags- unterlagen erstellen"
+  },
+  {
+   "id": "sid-2C27DCF0-C3E9-4076-82C2-3A15F8F8B79E",
+   "kind": "function",
+   "name": "Konditionen festlegen"
+  },
+  {
+   "id": "sid-B13EF411-740F-425B-B75D-E3592B697473",
+   "kind": "and"
+  },
+  {
+   "id": "sid-D184E50D-A90A-4F93-A873-CFA322AF9D2B",
+   "kind": "event",
+   "name": "Kundendaten erfasst"
+  },
+  {
+   "id": "sid-76459208-FE8B-4B9B-9ACD-EE8A1D790C1C",
+   "kind": "event",
+   "name": "Antrag abgelehnt"
+  },
+  {
+   "id": "sid-D544C34A-93ED-4F0F-8BFA-2A7D04D12EC2",
+   "kind": "event",
+   "name": "Sicherheiten nicht vorhanden"
+  },
+  {
+   "id": "sid-E3DD1084-2B92-408B-9CF7-C0D32981F27D",
+   "kind": "event",
+   "name": "Sicherheiten vorhanden"
+  },
+  {
+   "id": "sid-45FE9E7C-83D4-42A6-860B-3E99C9044DDE",
+   "kind": "event",
+   "name": "Antrag angenommen"
+  }
+ ],
+ "edges": [
+  {
+   "from": "sid-EB72213A-544D-4E65-B3BE-E17D62F55BCB",
+   "to": "sid-00B9E0D3-9E91-4509-BCD9-88711903171B"
+  },
+  {
+   "from": "sid-5BDE03FF-CA3C-4FCA-A677-8B0CB0D9E127",
+   "to": "sid-00B9E0D3-9E91-4509-BCD9-88711903171B"
+  },
+  {
+   "from": "sid-00B9E0D3-9E91-4509-BCD9-88711903171B",
+   "to": "sid-E73DD2E3-D7A8-4BE9-92D1-FDC8D41FC3DF"
+  },
+  {
+   "from": "sid-E73DD2E3-D7A8-4BE9-92D1-FDC8D41FC3DF",
+   "to": "sid-D184E50D-A90A-4F93-A873-CFA322AF9D2B"
+  },
+  {
+   "from": "sid-D5B15027-1A81-4DFB-8217-2A89C43188AB",
+   "to": "sid-F7FEFD58-CBE3-4AB4-A861-AFE2E96C3D1B"
+  },
+  {
+   "from": "sid-0068F6EB-0826-440C-AAF8-AE70EAF681AB",
+   "to": "sid-76459208-FE8B-4B9B-9ACD-EE8A1D790C1C"
+  },
+  {
+   "from": "sid-F7FEFD58-CBE3-4AB4-A861-AFE2E96C3D1B",
+   "to": "sid-D544C34A-93ED-4F0F-8BFA-2A7D04D12EC2"
+  },
+  {
+   "from": "sid-F7FEFD58-CBE3-4AB4-A861-AFE2E96C3D1B",
+   "to": "sid-E3DD1084-2B92-408B-9CF7-C0D32981F27D"
+  },
+  {
+   "from": "sid-087622AE-9FD7-43B9-BD38-5D67885BC9BE",
+   "to": "sid-2AED03BF-5FDB-4455-99BC-B431E9E33CC9"
+  },
+  {
+   "from": "sid-087622AE-9FD7-43B9-BD38-5D67885BC9BE",
+   "to": "sid-2C27DCF0-C3E9-4076-82C2-3A15F8F8B79E"
+  },
+  {
+   "from": "sid-2AED03BF-5FDB-4455-99BC-B431E9E33CC9",
+   "to": "sid-B13EF411-740F-425B-B75D-E3592B697473"
+  },
+  {
+   "from": "sid-2C27DCF0-C3E9-4076-82C2-3A15F8F8B79E",
+   "to": "sid-B13EF411-740F-425B-B75D-E3592B697473"
+  },
+  {
+   "from": "sid-B13EF411-740F-425B-B75D-E3592B697473",
+   "to": "sid-45FE9E7C-83D4-42A6-860B-3E99C9044DDE"
+  },
+  {
+   "from": "sid-D184E50D-A90A-4F93-A873-CFA322AF9D2B",
+   "to": "sid-D5B15027-1A81-4DFB-8217-2A89C43188AB"
+  },
+  {
+   "from": "sid-D544C34A-93ED-4F0F-8BFA-2A7D04D12EC2",
+   "to": "sid-0068F6EB-0826-440C-AAF8-AE70EAF681AB"
+  },
+  {
+   "from": "sid-E3DD1084-2B92-408B-9CF7-C0D32981F27D",
+   "to": "sid-087622AE-9FD7-43B9-BD38-5D67885BC9BE"
+  }
+ ]
+}

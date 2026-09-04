@@ -1,0 +1,148 @@
+# Real-EPC corpus
+
+Nine EPCs from two public model collections — four kept here, five
+fetched on demand — so that the structuring pass is developed against
+shapes real modellers drew rather than shapes the textbook suggests. The
+roadmap's rule — *no EPC shape is built from imagination* — needs a
+corpus; this is the first one.
+
+**This is not Arc A1.** A1 wants an export from an adopter's own ARIS,
+round-tripped through `aris/export_epc.js`, which is still the unverified
+link in the chain. Nothing here went through that script: these models
+come from public research collections in their own formats. What the
+corpus does buy is the *shapes*, and a measurement of how many of them the
+converter accepts (below).
+
+## Layout
+
+    source/     the four kept files as published, in their upstream format
+    *.json      the same models in the version-1 intermediate contract
+    sap/        the five SAP models — fetched, git-ignored, not GPL
+
+Four of the nine models are in the repository. The five SAP ones are not:
+they carry a NonCommercial clause this repository cannot, so a script
+rebuilds them from upstream instead (see *Sources* below):
+
+    python tools/corpus/fetch_sap.py            # into sap/, git-ignored
+    python tools/corpus/fetch_sap.py --verify   # check what is there
+
+The `*.json` files — in both places — are what `aris2puml` reads.
+Regenerate the four kept ones from `source/` with the converters in
+`tools/corpus/`:
+
+    python tools/corpus/bpmai_to_json.py source/ out/ 504129192
+
+`bpmai_to_json.py` names its output by the model's own id; the four kept
+files are renamed to say what they model. `fetch_sap.py` does the
+renaming itself, over `epml_to_json.py`. All three drop what the contract
+has no place for (information objects, IT systems, annotations) and pass
+names through untouched — typos, line breaks and duplicate labels
+included, because pumllint's job is to report them. None of them is a
+reader for the CLI: EPML and Oryx JSON are not accepted input formats,
+and adding one is a roadmap decision (Arc C), not something this corpus
+presumes.
+
+## The models
+
+| File | Models | Size | Today |
+|------|--------|------|-------|
+| `mortgage-application.json` | mortgage origination: application check, credit history, approval, property inspection, deed, mortgage insurance, disbursement | 11 f / 17 e / 7 xor / 1 and / 1 or, 41 edges | refused — back edge from an event that is not an XOR outcome (B1) |
+| `mortgage-application-variant.json` | the same process modelled by a second author, with a rework loop and a disconnected fragment | 13 f / 18 e / 6 xor / 1 and / 1 or, 42 edges | refused — the loop does not leave from an XOR split (B1) |
+| `project-financing-to-be.json` | customer-financing to-be process across two org units, escalating to the bank for release of funds | 15 f / 16 e / 6 xor / 3 and, 39 edges, 2 lanes | refused — 2 start events (A2) |
+| `credit-application-de.json` | credit application over two intake channels: record customer data, check collateral, set conditions or reject | 5 f / 7 e / 2 xor / 2 and, 16 edges | refused — 2 start events (A2) |
+| `sap/sap-loan-origination.json` † | SAP TR-LO loan origination: inquiry, application, credit standing, approval, offer, contract, disbursement | 7 f / 12 e / 4 xor, 22 edges | refused — 4 start events (A2) |
+| `sap/sap-loans-lifecycle.json` † | SAP TR-LO loans lifecycle: new transactions, rollover, accounting, expiring conditions | 3 f / 11 e / 5 xor / 1 or, 20 edges | refused — 4 start events (A2) |
+| `sap/sap-loan-rollover.json` † | SAP TR-LO rollover: select position, determine conditions, generate offer | 3 f / 7 e / 1 xor / 3 and, 14 edges | refused — 2 start events (A2) |
+| `sap/sap-currency-option-lifecycle.json` † | SAP treasury: exercise, knock-in/out, expiry, termination, netting, settlement | 8 f / 17 e / 5 xor / 3 or, 33 edges | refused — a join reached without passing through its split; genuinely unstructured |
+| `sap/sap-outgoing-payments.json` † | SAP FI-AP outgoing payments: release, automatic and manual runs, payment media | 4 f / 17 e / 2 xor / 3 and / 1 or, 27 edges | **converts**, with the OR-split warning |
+
+† fetched by `tools/corpus/fetch_sap.py`, not in the repository.
+
+`mortgage-application.json` is the complex credit process the corpus was
+assembled around. It carries, in one diagram, most of what the roadmap is
+short of: a rework loop back over the application check, a three-outcome
+XOR on the loan amount, a conditional credit-history check, an AND fork
+whose branches are a property inspection and a deed with a nested
+insurance XOR, and an OR join before disbursement. Its variant is the
+same process drawn by a different author — useful because the two
+disagree on where the loop closes and on how the outcomes are named,
+which is the kind of drift a conventions gate exists to catch.
+
+No mortgage *lifecycle* model (servicing, arrears, redemption) is in
+either collection; the loan lifecycle is represented by the SAP TR-LO
+pair, at overview altitude.
+
+## What the corpus measures
+
+Run over every model in each upstream collection, not just the nine kept
+here (`tools/corpus/census.py`):
+
+| | SAP reference model (604 EPCs) | BPMAI (4332 EPCs) |
+|---|---|---|
+| converts | 26.3 % | 32.0 % |
+| multiple start events (A2) | 69.5 % | 23.5 % |
+| loop shapes (B1) | 0.7 % | 19.8 % |
+| unstructured join or split/join mismatch | 1.0 % | 15.8 % |
+| reader refused (unnamed or malformed element) | 2.5 % | 5.6 % |
+| smaller refusals | — | 3.3 % |
+
+Two collections, two very different populations — the SAP models are
+generated overview diagrams with many entry points, the BPMAI models are
+hand-drawn by students — and both put the same two items at the top:
+**A2 first, B1 second**. Together they would move BPMAI from 32 % to
+75 % and the SAP set from 26 % to 97 %. The unstructured-join share
+is the floor: those models have no block structure to find, and refusing
+them is the correct answer.
+
+The 2.5 %–5.6 % of models the *reader* rejects are mostly elements with
+an empty label. That is a contract question, not a structuring one: the
+version-1 JSON requires a name on every function and event, and real
+exports do not always have one.
+
+Reproduce either column by downloading the collection (below), converting
+it whole, and running the census:
+
+    python tools/corpus/bpmai_to_json.py bpmai/models /tmp/all
+    python tools/corpus/census.py /tmp/all
+
+## Sources, licences and attribution
+
+**BPM Academic Initiative model collection** (`mortgage-application`,
+`mortgage-application-variant`, `project-financing-to-be`,
+`credit-application-de`) — 29 810 models, 4332 of them EPCs, collected
+from the academic BPM modelling platform. Version BPMAI-29-10-2019,
+<https://doi.org/10.5281/zenodo.3758705>, published under **Creative
+Commons Attribution 3.0**. Kept files are unmodified, under their upstream
+model ids: 504129192, 1525267023, 1030995632, 278909031.
+
+**EPC models of the ERP reference model** (the five `sap/` files) — 604
+EPCs of the SAP R/3 reference model, distributed as one EPML document
+with *Fundamentals of Business Process Management*,
+<http://fundamentals-of-bpm.org/process-model-collections/>, under
+**Creative Commons Attribution-NonCommercial-ShareAlike 3.0**.
+
+That NonCommercial clause is an added restriction, and GPL-3.0-or-later
+software may not carry one. It would also follow anything derived from
+the models, the version-1 translations included. So this repository does
+not redistribute them: `tools/corpus/fetch_sap.py` downloads the upstream
+archive and rebuilds the five files into `sap/`, which `.gitignore`
+excludes. What is in git is the script and a SHA-256 for each file it
+produces, which is enough to reproduce the corpus byte for byte and to
+notice if upstream republishes. Whoever runs it holds the result under
+the upstream licence, not this repository's.
+
+Each fetched file is one `<epc>` element lifted out of `SAPModels.epml`
+unchanged; the `name` attribute is the ARIS model id the collection ships
+(`1Tr_fyhp` and so on — the collection carries no model titles, so the
+descriptions in the table above were read off the element labels and are
+not in the data).
+
+Note that a public repository has no private part: had the five files
+been committed, they would have been published. Storing them instead of
+fetching them means a second, private repository — a submodule or a
+manual copy — and buys nothing this script does not already give, since
+the models are a public download either way.
+
+Nothing in this directory is packaged: `pyproject.toml` ships
+`aris2puml*` only. The census columns above are reproducible from the
+upstream downloads without keeping either collection in the repository.
