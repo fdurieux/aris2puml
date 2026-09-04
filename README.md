@@ -78,6 +78,8 @@ roadmap says when one would.
 | function | `:Verb object;` on one line | ACT006 (verb-first), ACT004 |
 | org unit on a function | `\|Org unit\|` swimlane, re-declared whenever the lane changes | ACT005, XD004 |
 | start event | `start` then `-> Event;` | ACT001 |
+| several start events, joined before the first function | an *entry region*: `if`/`switch` (XOR join) or `fork` (AND/OR join) right after `start`, the events as branch labels, nested as the joins nest; a chain of XOR joins is one `switch`; a nested group's label is its event names joined by its join's word (`A or B`, `A and B`) | ACT003 |
+| start event entering the flow at a join fed from inside the process (a *mid-flow trigger*) | folded into the arrow label at that join (merged with the preceding event's label: `-> Procured and Budget to be updated;`), preceded by `' epc: external trigger at <join> (<kind>)`, plus a warning on stderr | — |
 | end event | `-> Event;` then `stop` | ACT002 |
 | XOR with two outcomes | `if (First outcome?) then (Event A) … else (Event B) … endif` | ACT003 |
 | XOR with more outcomes | `switch (Function outcome?)` / `case (Event)` … `endswitch` | ACT003 |
@@ -105,7 +107,10 @@ repositories cannot drift apart on the mapping without a test saying so.
 `StructureError`, exit 2, nothing written for that process, the
 offending node named:
 
-- more than one start node (v1 supports exactly one start event);
+- no entry at all: every start event is a mid-flow trigger, or a group of
+  start events that share no join below their region;
+- a start event entering mid-flow through a path that carries a function
+  (only pure event trees are folded);
 - a split whose branches do not all reach one join, or that jump into
   another split's region;
 - an XOR split joined by an AND (or any kind mismatch);
@@ -118,10 +123,11 @@ offending node named:
 Structure the EPC first. The converter will not invent structure the
 model does not have.
 
-How often that bites, measured over two public EPC collections: 26 % of
-the 604 SAP reference models and 32 % of the 4332 BPM Academic Initiative
-models convert today, and multiple start events alone account for 70 % and
-24 % of the rest. The nine EPCs those numbers were read off — a mortgage
+How often that bites, measured over two public EPC collections: 74 % of
+the 604 SAP reference models convert today (26 % before several start
+events were supported), and 32 % of the 4332 BPM Academic Initiative
+models did at that earlier point, multiple start events accounting for
+24 % of its refusals. The nine EPCs those numbers were read off — a mortgage
 origination process among them — are in
 [`tests/fixtures/corpus/`](tests/fixtures/corpus/README.md) with the
 census and its method. Five of the nine are fetched rather than

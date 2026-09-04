@@ -111,11 +111,11 @@ roadmap decision (Arc C), not something this corpus presumes.
 |------|--------|------|-------|
 | `mortgage-application.json` | mortgage origination: application check, credit history, approval, property inspection, deed, mortgage insurance, disbursement | 11 f / 17 e / 7 xor / 1 and / 1 or, 41 edges | refused — back edge from an event that is not an XOR outcome (B1) |
 | `mortgage-application-variant.json` | the same process modelled by a second author, with a rework loop and a disconnected fragment | 13 f / 18 e / 6 xor / 1 and / 1 or, 42 edges | refused — the loop does not leave from an XOR split (B1) |
-| `project-financing-to-be.json` | customer-financing to-be process across two org units, escalating to the bank for release of funds | 15 f / 16 e / 6 xor / 3 and, 39 edges, 2 lanes | refused — 2 start events (A2) |
-| `credit-application-de.json` | credit application over two intake channels: record customer data, check collateral, set conditions or reject | 5 f / 7 e / 2 xor / 2 and, 16 edges | refused — 2 start events (A2) |
-| `sap/sap-loan-origination.json` † | SAP TR-LO loan origination: inquiry, application, credit standing, approval, offer, contract, disbursement | 7 f / 12 e / 4 xor, 22 edges | refused — 4 start events (A2) |
-| `sap/sap-loans-lifecycle.json` † | SAP TR-LO loans lifecycle: new transactions, rollover, accounting, expiring conditions | 3 f / 11 e / 5 xor / 1 or, 20 edges | refused — 4 start events (A2) |
-| `sap/sap-loan-rollover.json` † | SAP TR-LO rollover: select position, determine conditions, generate offer | 3 f / 7 e / 1 xor / 3 and, 14 edges | refused — 2 start events (A2) |
+| `project-financing-to-be.json` | customer-financing to-be process across two org units, escalating to the bank for release of funds | 15 f / 16 e / 6 xor / 3 and, 39 edges, 2 lanes | **converts** (A2: two entry events become the opening `if`) |
+| `credit-application-de.json` | credit application over two intake channels: record customer data, check collateral, set conditions or reject | 5 f / 7 e / 2 xor / 2 and, 16 edges | **converts** (A2) |
+| `sap/sap-loan-origination.json` † | SAP TR-LO loan origination: inquiry, application, credit standing, approval, offer, contract, disbursement | 7 f / 12 e / 4 xor, 22 edges | **converts**, with a mid-flow trigger warning (A2) |
+| `sap/sap-loans-lifecycle.json` † | SAP TR-LO loans lifecycle: new transactions, rollover, accounting, expiring conditions | 3 f / 11 e / 5 xor / 1 or, 20 edges | **converts**, with the OR-split warning (A2) |
+| `sap/sap-loan-rollover.json` † | SAP TR-LO rollover: select position, determine conditions, generate offer | 3 f / 7 e / 1 xor / 3 and, 14 edges | **converts** (A2) |
 | `sap/sap-currency-option-lifecycle.json` † | SAP treasury: exercise, knock-in/out, expiry, termination, netting, settlement | 8 f / 17 e / 5 xor / 3 or, 33 edges | refused — a join reached without passing through its split; genuinely unstructured |
 | `sap/sap-outgoing-payments.json` † | SAP FI-AP outgoing payments: release, automatic and manual runs, payment media | 4 f / 17 e / 2 xor / 3 and / 1 or, 27 edges | **converts**, with the OR-split warning |
 
@@ -148,6 +148,22 @@ here (`tools/corpus/census.py`):
 | unstructured join or split/join mismatch | 1.0 % | 15.8 % |
 | reader refused (unnamed or malformed element) | 2.5 % | 5.6 % |
 | smaller refusals | — | 3.3 % |
+
+*Those are the numbers before A2 shipped (2026-09-04, later the same
+day). After it, re-run over the SAP set with the same command:*
+
+| SAP reference model, after A2 | |
+|---|---|
+| converts | **73.7 %** (445 of 604; 68 of them with a mid-flow trigger warning) |
+| unstructured join or split/join mismatch | 17.4 % |
+| loop shapes (B1) | 4.1 % |
+| reader refused (unnamed element) | 2.5 % |
+| A2 residual: no entry at all (every start is a mid-flow trigger) | 0.5 % |
+| unstructured cycle, connector-less splits, entry branches missing their join | 1.8 % |
+
+*The BPMAI column is not re-run: its 388 MB archive is not cached here.
+Its A2 share was 23.5 %, most of it the two-entry shape the four kept
+models have, so the same order of gain is expected but not measured.*
 
 Two collections, two very different populations — the SAP models are
 generated overview diagrams with many entry points, the BPMAI models are

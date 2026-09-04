@@ -80,9 +80,6 @@ def test_implicit_merge_on_a_function_is_accepted():
         ([("e0", "event", "S"), ("x", "xor"), ("a", "function", "A"), ("b", "function", "B"),
           ("j", "and"), ("ee", "event", "E")],
          ["e0>x", "x>a", "x>b", "a>j", "b>j", "j>ee"], "split x (xor) joins at j (and)"),
-        # two start events
-        ([("e0", "event", "S1"), ("e1", "event", "S2"), ("j", "xor"), ("f", "function", "F")],
-         ["e0>j", "e1>j", "j>f"], "2 start nodes"),
         # loop closing from a function, not an XOR split
         ([("e0", "event", "S"), ("j", "xor"), ("f", "function", "F")],
          ["e0>j", "j>f", "f>j"], "loops must leave from an XOR split"),

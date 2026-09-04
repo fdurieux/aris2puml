@@ -13,7 +13,14 @@ Supported shapes:
   run to their own end event (no join);
 * AND / OR split → parallel branches → matching join of the same kind;
 * one back edge per loop, from an XOR split (directly, or via one event)
-  to an XOR join that is the loop header.
+  to an XOR join that is the loop header;
+* several start events: joined before the first function they become an
+  *entry region* — nested if/switch/fork blocks whose outcomes are the
+  start events (grouped by the join each reaches, chains of XOR joins
+  flattened, group labels derived by joining the event names with the
+  join's word); a start event that instead enters the flow at a join fed
+  from inside the process is a *mid-flow trigger*, folded into the arrow
+  label at that join with a marker and a warning.
 
 Everything else raises :class:`StructureError`.
 """
@@ -78,6 +85,15 @@ class Loop:
 
 
 @dataclass
+class Trigger:
+    join: Node              # the connector where external start events enter
+    label: str              # their names, joined by the connector's word
+
+
+JOINWORD = {"xor": " or ", "and": " and ", "or": " and/or "}
+
+
+@dataclass
 class Structured:
     blocks: list
     warnings: list[str] = field(default_factory=list)
@@ -85,9 +101,10 @@ class Structured:
 
 # -- graph helpers ---------------------------------------------------------
 
-def _post_dominators(proc: Process) -> dict[str, str | None]:
-    """Immediate post-dominator of every node, on the graph with a virtual
-    exit that every sink flows into. ``None`` for the exit itself."""
+def _post_dominators(proc: Process) -> tuple[dict[str, str | None], dict[str, set[str]]]:
+    """Immediate post-dominator of every node (``None`` for the exit) and
+    the full post-dominator sets, on the graph with a virtual exit that
+    every sink flows into."""
     ids = [n.id for n in proc.nodes] + [EXIT]
     succ = {i: list(proc.successors(i)) for i in ids if i != EXIT}
     for i in list(succ):
@@ -119,7 +136,7 @@ def _post_dominators(proc: Process) -> dict[str, str | None]:
                 best = c
                 break
         ipdom[i] = best
-    return ipdom
+    return ipdom, pdom
 
 
 def _back_edges(proc: Process, starts: list[str]) -> list[tuple[str, str]]:
@@ -151,12 +168,7 @@ class _Walker:
         self.starts = [n.id for n in proc.nodes if not proc.predecessors(n.id)]
         if not self.starts:
             raise StructureError("no start node: every node has a predecessor")
-        if len(self.starts) > 1:
-            names = ", ".join(self.starts)
-            raise StructureError(
-                f"{len(self.starts)} start nodes ({names}); v1 supports exactly one start event"
-            )
-        self.ipdom = _post_dominators(proc)
+        self.ipdom, self.pdom = _post_dominators(proc)
         # loop tails: split S -> (header, back-event-or-None)
         self.loops: dict[str, tuple[str, str | None]] = {}
         self.headers: set[str] = set()
@@ -222,17 +234,198 @@ class _Walker:
                 if len(succs) > 1:
                     if cur in self.loops:
                         raise StructureError(f"loop split {cur} reached outside its loop")
-                    block, cur = self._split(n, succs)
-                    blocks.append(block)
+                    split_blocks, cur = self._split(n, succs)
+                    blocks.extend(split_blocks)
                 elif len(preds) > 1:
-                    raise StructureError(
-                        f"join {cur} reached without passing through its split (unstructured)"
-                    )
+                    trigger = self._trigger(cur, n)
+                    if trigger is None:
+                        raise StructureError(
+                            f"join {cur} reached without passing through its split (unstructured)"
+                        )
+                    blocks.append(trigger)
+                    cur = self._single_succ(cur)
                 else:
                     cur = self._single_succ(cur)
             else:  # pragma: no cover - model.validate() rejects unknown kinds
                 raise StructureError(f"{cur}: unknown kind {n.kind}")
         return blocks, cur
+
+    # -- entries: start events ----------------------------------------------
+    def _is_join(self, nid: str | None) -> bool:
+        if nid is None or nid == EXIT:
+            return False
+        n = self.p.node(nid)
+        return n.kind in CONNECTORS and len(self.p.predecessors(nid)) > 1
+
+    def _upstream(self, nid: str) -> set[str]:
+        seen: set[str] = set()
+        stack = [nid]
+        while stack:
+            u = stack.pop()
+            for q in self.p.predecessors(u):
+                if q not in seen:
+                    seen.add(q)
+                    stack.append(q)
+        return seen
+
+    def _from_inside(self, p: str, join: str) -> bool:
+        """``p`` is fed from inside the flow: a split, a consumed node or
+        ``join`` itself lies upstream of it."""
+        up = self._upstream(p) | {p}
+        if join in up:
+            return True
+        return any(
+            u in self.seen or (self.p.node(u).kind in CONNECTORS and len(self.p.successors(u)) > 1)
+            for u in up
+        )
+
+    def _entry_only(self, p: str, join: str) -> bool:
+        """``p`` and everything upstream of it is a tree of start events and
+        joins only — the shape that can be folded into a label without
+        losing a function."""
+        if self._from_inside(p, join):
+            return False
+        return all(self.p.node(u).kind not in ("function", "interface")
+                   for u in self._upstream(p) | {p})
+
+    def _is_trigger(self, s: str) -> bool:
+        """A start whose forward path meets a join fed from inside the flow
+        before any function or split: folded there, not an entry."""
+        cur: str | None = s
+        path: set[str] = set()
+        while cur is not None and cur not in path:
+            path.add(cur)
+            n = self.p.node(cur)
+            if n.kind in ("function", "interface"):
+                return False
+            if n.kind in CONNECTORS and len(self.p.successors(cur)) > 1:
+                return False
+            preds = self.p.predecessors(cur)
+            if len(preds) > 1 and any(
+                self._from_inside(q, cur) for q in preds if q not in path
+            ):
+                return True
+            succs = self.p.successors(cur)
+            cur = succs[0] if succs else None
+        return False
+
+    def _tree_label(self, nid: str) -> str:
+        """Name for an entry-only tree: the event nearest the flow, or the
+        names of the trees behind a join, joined by that join's word."""
+        n = self.p.node(nid)
+        preds = self.p.predecessors(nid)
+        if not preds:
+            return n.name
+        if len(preds) == 1:
+            return n.name if n.kind == "event" and n.name else self._tree_label(preds[0])
+        return JOINWORD[n.kind].join(self._tree_label(q) for q in preds)
+
+    def _trigger(self, cur: str, n: Node, from_branches: bool = False) -> Trigger | None:
+        """External start events entering at join ``cur``: every predecessor
+        not consumed by the flow must be a pure entry tree. Reached from a
+        single branch (the default) exactly one predecessor is the flow's;
+        reached as a split's own join, all consumed ones are."""
+        preds = self.p.predecessors(cur)
+        entry = [q for q in preds if self._entry_only(q, cur)]
+        expected = len([q for q in preds if q not in self.seen]) if from_branches else len(preds) - 1
+        if not entry or len(entry) != expected:
+            return None
+        for q in entry:
+            for u in self._upstream(q) | {q}:
+                self._mark(u)
+        label = JOINWORD[n.kind].join(self._tree_label(q) for q in entry)
+        self.warnings.append(f"{cur}: external trigger joins mid-process ({n.kind}): {label}")
+        return Trigger(n, label)
+
+    def _nearest(self, cands: set[str]) -> str | None:
+        for c in cands:
+            if all(o == c or o in self.pdom[c] for o in cands):
+                return c
+        return None
+
+    def _common_join(self, starts: list[str]) -> str:
+        common = set.intersection(*(self.pdom[s] for s in starts))
+        return self._nearest(common) or EXIT
+
+    def _after_join(self, join: str) -> str | None:
+        if self._is_join(join):
+            self._mark(join)
+            return self._single_succ(join)
+        return join  # implicit merge on a non-connector node: continue at it
+
+    def _walk_to(self, start: str | None, stop: str | None, via: str) -> list:
+        body, reached = self.walk(start, stop)
+        if stop is not None and reached != stop:
+            raise StructureError(f"entry via {via} does not reach the entry join {stop}")
+        return body
+
+    def _region(self, starts: list[str], join: str) -> tuple[object, list[str]]:
+        """The entry region of ``starts``, which meet at ``join`` (or never,
+        when ``join`` is the exit): one Decision (XOR-kind) or Parallel
+        (AND/OR-kind) block, plus one label per branch for the parent."""
+        stop = None if join == EXIT else join
+        kind = self.p.node(join).kind if self._is_join(join) else "xor"
+        groups: dict[str, list[str]] = {}
+        for s in starts:
+            c = s
+            while self.ipdom.get(c) not in (join, None):
+                c = self.ipdom[c]  # type: ignore[assignment]
+            groups.setdefault(c, []).append(s)
+        branches: list[Branch] = []
+        bodies: list[list] = []
+        labels: list[str] = []
+        for group in groups.values():
+            if len(group) == 1:
+                s = group[0]
+                if kind == "xor":
+                    label, start, ends = self._branch_start(s, "xor")
+                    body = [Stop(self.p.node(s))] if ends else self._walk_to(start, stop, s)
+                    branches.append(Branch(label, body))
+                    labels.append(label or self.p.node(s).name)
+                else:
+                    bodies.append(self._walk_to(s, stop, s))
+                    labels.append(self.p.node(s).name)
+                continue
+            inner = self._common_join(group)
+            if inner in (join, EXIT):
+                raise StructureError(
+                    f"start events {', '.join(group)} share no join below {join}"
+                )
+            inner_kind = self.p.node(inner).kind if self._is_join(inner) else "xor"
+            block, inner_labels = self._region(group, inner)
+            if kind == "xor" and inner_kind == "xor" and self.p.successors(inner) == [join]:
+                # a chain of XOR joins is one decision: splice, do not nest
+                self._mark(inner)
+                branches.extend(block.branches)  # type: ignore[attr-defined]
+                labels.extend(inner_labels)
+                continue
+            rest = self._walk_to(self._after_join(inner), stop, group[0])
+            label = JOINWORD[inner_kind].join(inner_labels)
+            if kind == "xor":
+                branches.append(Branch(label, [block] + rest))
+            else:
+                bodies.append([block] + rest)
+            labels.append(label)
+        virtual = Node(id="$start", kind=kind)
+        if kind == "xor":
+            return Decision(virtual, "Trigger?", branches), labels
+        if kind == "or":
+            self.warnings.append("start: OR-joined start events have no activity-diagram equivalent; emitted as fork")
+        return Parallel(virtual, bodies), labels
+
+    def entry(self) -> tuple[list, str | None]:
+        """Blocks for the whole process, from its start events."""
+        real = [s for s in self.starts if not self._is_trigger(s)]
+        if not real:
+            raise StructureError("every start event is a mid-process trigger: no entry into the flow")
+        if len(real) == 1:
+            return self.walk(real[0], None)
+        join = self._common_join(real)
+        block, _ = self._region(real, join)
+        if join == EXIT:
+            return [block], None
+        rest, reached = self.walk(self._after_join(join), None)
+        return [block] + rest, reached
 
     def _branch_start(self, s: str, kind: str) -> tuple[str | None, str | None, bool]:
         """For an XOR branch head: (label, first body node, ends_immediately)."""
@@ -243,7 +436,7 @@ class _Walker:
             return sn.name, nxt, nxt is None
         return None, s, False
 
-    def _split(self, n: Node, succs: list[str]) -> tuple[object, str | None]:
+    def _split(self, n: Node, succs: list[str]) -> tuple[list, str | None]:
         join = self.ipdom[n.id]
         stop = None if join == EXIT else join
         if n.kind == "xor":
@@ -271,14 +464,18 @@ class _Walker:
                 )
             block = Parallel(n, bodies)
         if stop is None:
-            return block, None
+            return [block], None
         jn = self.p.node(join)
         if jn.kind in CONNECTORS and len(self.p.predecessors(join)) > 1:
             if jn.kind != n.kind:
                 raise StructureError(f"split {n.id} ({n.kind}) joins at {join} ({jn.kind})")
             self._mark(join)
-            return block, self._single_succ(join)
-        return block, join  # implicit merge on a non-connector node
+            blocks: list = [block]
+            trigger = self._trigger(join, jn, from_branches=True)
+            if trigger is not None:
+                blocks.append(trigger)
+            return blocks, self._single_succ(join)
+        return [block], join  # implicit merge on a non-connector node
 
     def _condition(self, n: Node, branches: list[Branch]) -> str:
         labels = [b.label for b in branches if b.label]
@@ -320,7 +517,7 @@ class _Walker:
 
 def structure(proc: Process) -> Structured:
     w = _Walker(proc)
-    blocks, reached = w.walk(w.starts[0], None)
+    blocks, reached = w.entry()
     if reached is not None:
         raise StructureError(f"walk stopped on {reached} without consuming it")
     unreached = [n.id for n in proc.nodes if n.id not in w.seen]
