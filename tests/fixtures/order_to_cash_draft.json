@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "process": {"id": "draft-1", "name": "Order to cash — first draft", "owner": ""},
+  "lanes": [
+    {"id": "ou-sales", "name": "Sales"},
+    {"id": "ou-credit", "name": "credit control"},
+    {"id": "ou-wh", "name": "Warehouse & Logistics"},
+    {"id": "ou-fin", "name": "FIN"}
+  ],
+  "nodes": [
+    {"id": "f1", "kind": "function", "name": "Order intake", "lane": "ou-sales"},
+    {"id": "f2", "kind": "function", "name": "Order validation", "lane": "ou-sales"},
+    {"id": "x1", "kind": "xor"},
+    {"id": "e1", "kind": "event", "name": "Valid"},
+    {"id": "f3", "kind": "function", "name": "Credit check", "lane": "ou-credit"},
+    {"id": "f4", "kind": "function", "name": "Pick goods", "lane": "ou-wh"},
+    {"id": "f5", "kind": "function", "name": "Ship goods", "lane": "ou-wh"},
+    {"id": "f6", "kind": "function", "name": "Create invoice", "lane": "ou-fin"},
+    {"id": "f7", "kind": "function", "name": "Send invoice", "lane": "ou-fin"},
+    {"id": "f8", "kind": "function", "name": "Record payment", "lane": "ou-fin"},
+    {"id": "f9", "kind": "function", "name": "Reject order", "lane": "ou-sales"},
+    {"id": "x2", "kind": "xor"}
+  ],
+  "edges": [
+    {"from": "f1", "to": "f2"}, {"from": "f2", "to": "x1"},
+    {"from": "x1", "to": "e1"}, {"from": "e1", "to": "f3"},
+    {"from": "f3", "to": "f4"}, {"from": "f4", "to": "f5"}, {"from": "f5", "to": "f6"},
+    {"from": "f6", "to": "f7"}, {"from": "f7", "to": "f8"}, {"from": "f8", "to": "x2"},
+    {"from": "x1", "to": "f9"}, {"from": "f9", "to": "x2"}
+  ]
+}

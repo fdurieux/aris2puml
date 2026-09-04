@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aris2puml"
+version = "0.1.0"
+description = "Convert ARIS EPC exports into PlantUML activity diagrams that pumllint can gate"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+authors = [{ name = "fdurieux", email = "fdurieux@i-kei.com" }]
+keywords = ["aris", "epc", "plantuml", "bpm", "business-process", "pumllint"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Documentation",
+    "Topic :: Office/Business",
+]
+dependencies = []
+
+[project.optional-dependencies]
+check = ["pumllint>=0.31"]
+test = ["pytest>=7"]
+
+[project.scripts]
+aris2puml = "aris2puml.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/fdurieux/aris2puml"
+Issues = "https://github.com/fdurieux/aris2puml/issues"
+"Lint the output with" = "https://github.com/fdurieux/pumllint"
+
+[tool.setuptools.packages.find]
+include = ["aris2puml*"]

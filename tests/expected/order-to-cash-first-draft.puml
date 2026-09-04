@@ -1,0 +1,23 @@
+@startuml order-to-cash-first-draft
+title Order to cash — first draft
+footer ARIS process draft-1
+
+|Sales|
+start
+:Order intake;
+:Order validation;
+if (Valid?) then (Valid)
+  |credit control|
+  :Credit check;
+  |Warehouse & Logistics|
+  :Pick goods;
+  :Ship goods;
+  |FIN|
+  :Create invoice;
+  :Send invoice;
+  :Record payment;
+else
+  |Sales|
+  :Reject order;
+endif
+@enduml

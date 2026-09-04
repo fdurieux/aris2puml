@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "process": {"id": "PROC-0042", "name": "Order to cash", "owner": "Sales Operations"},
+  "lanes": [
+    {"id": "ou-sales", "name": "Sales"},
+    {"id": "ou-credit", "name": "Credit Control"},
+    {"id": "ou-wh", "name": "Warehouse & Logistics"},
+    {"id": "ou-fin", "name": "Finance"}
+  ],
+  "nodes": [
+    {"id": "e0", "kind": "event", "name": "Customer order received"},
+    {"id": "f1", "kind": "function", "name": "Receive order", "lane": "ou-sales"},
+    {"id": "f2", "kind": "function", "name": "Validate order", "lane": "ou-sales"},
+    {"id": "x1", "kind": "xor"},
+    {"id": "e1", "kind": "event", "name": "Order valid"},
+    {"id": "e2", "kind": "event", "name": "Order invalid"},
+    {"id": "f3", "kind": "function", "name": "Check credit limit", "lane": "ou-credit"},
+    {"id": "a1", "kind": "and"},
+    {"id": "f4", "kind": "function", "name": "Pick goods", "lane": "ou-wh"},
+    {"id": "f5", "kind": "function", "name": "Ship goods", "lane": "ou-wh"},
+    {"id": "f6", "kind": "function", "name": "Create invoice", "lane": "ou-fin"},
+    {"id": "f7", "kind": "function", "name": "Send invoice", "lane": "ou-fin"},
+    {"id": "a2", "kind": "and"},
+    {"id": "f8", "kind": "function", "name": "Record payment", "lane": "ou-fin"},
+    {"id": "e3", "kind": "event", "name": "Payment received"},
+    {"id": "f9", "kind": "function", "name": "Reject order", "lane": "ou-sales"},
+    {"id": "p1", "kind": "interface", "name": "Handle customer enquiry", "lane": "ou-sales", "ref": "PROC-0051"},
+    {"id": "e4", "kind": "event", "name": "Order rejected"}
+  ],
+  "edges": [
+    {"from": "e0", "to": "f1"}, {"from": "f1", "to": "f2"}, {"from": "f2", "to": "x1"},
+    {"from": "x1", "to": "e1"}, {"from": "x1", "to": "e2"},
+    {"from": "e1", "to": "f3"}, {"from": "f3", "to": "a1"},
+    {"from": "a1", "to": "f4"}, {"from": "f4", "to": "f5"}, {"from": "f5", "to": "a2"},
+    {"from": "a1", "to": "f6"}, {"from": "f6", "to": "f7"}, {"from": "f7", "to": "a2"},
+    {"from": "a2", "to": "f8"}, {"from": "f8", "to": "e3"},
+    {"from": "e2", "to": "f9"}, {"from": "f9", "to": "p1"}, {"from": "p1", "to": "e4"}
+  ]
+}

@@ -1,0 +1,34 @@
+@startuml order-to-cash
+title Order to cash
+footer owner: Sales Operations — ARIS process PROC-0042
+
+|Sales|
+start
+-> Customer order received;
+:Receive order;
+:Validate order;
+if (Order valid?) then (Order valid)
+  |Credit Control|
+  :Check credit limit;
+  fork
+    |Warehouse & Logistics|
+    :Pick goods;
+    :Ship goods;
+  fork again
+    |Finance|
+    :Create invoice;
+    :Send invoice;
+  end fork
+  |Finance|
+  :Record payment;
+  -> Payment received;
+  stop
+else (Order invalid)
+  |Sales|
+  :Reject order;
+  ' aris: interface PROC-0051
+  :Handle customer enquiry;
+  -> Order rejected;
+  stop
+endif
+@enduml
