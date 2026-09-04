@@ -1,0 +1,353 @@
+{
+ "version": 1,
+ "process": {
+  "id": "BPMAI-504129192",
+  "name": "Activity 1.5",
+  "owner": ""
+ },
+ "lanes": [],
+ "nodes": [
+  {
+   "id": "sid-4B88A7D5-CBFD-423A-B82E-ED8CB96AA1F3",
+   "kind": "event",
+   "name": "Loan application received"
+  },
+  {
+   "id": "sid-17296F42-AC30-41CD-97C0-F483211F92D6",
+   "kind": "function",
+   "name": "Check loan application"
+  },
+  {
+   "id": "sid-D523116F-9651-4CD4-86BB-550FC70A4301",
+   "kind": "event",
+   "name": "Customer information invalid"
+  },
+  {
+   "id": "sid-85379C8F-498E-4EAF-BFD1-F5F4BCE09F03",
+   "kind": "function",
+   "name": "Contact customer"
+  },
+  {
+   "id": "sid-28FAF466-BC65-4E3C-800C-AF6B0CE41983",
+   "kind": "event",
+   "name": "Customer information valid"
+  },
+  {
+   "id": "sid-DA1331F7-3D01-4723-989E-8EAB66CE8377",
+   "kind": "function",
+   "name": "Register customer information"
+  },
+  {
+   "id": "sid-866FA23F-86FC-4A28-B04C-6C120BBFDDA7",
+   "kind": "event",
+   "name": "Loan application registered"
+  },
+  {
+   "id": "sid-2FE89001-3B54-4028-8EB0-28F97BDA3F4E",
+   "kind": "function",
+   "name": "Check loan amount"
+  },
+  {
+   "id": "sid-11F87847-D12D-4084-BEAA-249BB889ACD7",
+   "kind": "xor"
+  },
+  {
+   "id": "sid-A9A3FE94-11FB-4566-AAA6-007F652F321C",
+   "kind": "event",
+   "name": "Amount not approved"
+  },
+  {
+   "id": "sid-B660E8D5-D83A-4C35-8113-B905B1519C8D",
+   "kind": "event",
+   "name": "Amount approved without credit verification"
+  },
+  {
+   "id": "sid-EC935388-6816-4990-9588-A234EF82AF8D",
+   "kind": "event",
+   "name": "Amount approved pending verification"
+  },
+  {
+   "id": "sid-66EEBAC4-6577-463C-86A4-1748C4A0DCF4",
+   "kind": "xor"
+  },
+  {
+   "id": "sid-E7F7D9F8-237B-4D2C-997F-B819BEF4AD2B",
+   "kind": "function",
+   "name": "Check customer credit history"
+  },
+  {
+   "id": "sid-DA0B2E45-AC28-43AA-B26A-FA525934B81D",
+   "kind": "xor"
+  },
+  {
+   "id": "sid-D143644C-96E2-497A-8170-A3E0609AC308",
+   "kind": "event",
+   "name": "Good history"
+  },
+  {
+   "id": "sid-2DF0D7A7-FED8-48DF-B826-113501B3AE8C",
+   "kind": "event",
+   "name": "Bad history"
+  },
+  {
+   "id": "sid-AA66698D-08E3-44B2-8649-7098054EF1C9",
+   "kind": "function",
+   "name": "Approve loan application"
+  },
+  {
+   "id": "sid-D09E8E64-3DFA-4D51-B78E-2C3E7A299677",
+   "kind": "function",
+   "name": "Reject loan application"
+  },
+  {
+   "id": "sid-8B91A8AF-A8C6-4777-8F61-EAF8B36F4E1D",
+   "kind": "event",
+   "name": "Loan rejected"
+  },
+  {
+   "id": "sid-EC36373F-FA76-4B62-B62D-FA8A8E45F436",
+   "kind": "xor"
+  },
+  {
+   "id": "sid-B2A30575-DBC8-4EFA-8098-60A85838FB17",
+   "kind": "event",
+   "name": "Loan application approved"
+  },
+  {
+   "id": "sid-73169CD5-29BA-4474-8531-E06CC18D01F9",
+   "kind": "function",
+   "name": "Arrange property inspection"
+  },
+  {
+   "id": "sid-BFA5DBA6-EF8F-4AF8-8CC6-251C823CF263",
+   "kind": "function",
+   "name": "Arrange deed"
+  },
+  {
+   "id": "sid-BB837D95-4D10-4782-92F2-5958F620D721",
+   "kind": "event",
+   "name": "Insurance not needed"
+  },
+  {
+   "id": "sid-4283A033-F9F7-466F-859D-FDE890DCCFC7",
+   "kind": "event",
+   "name": "Insurance needed"
+  },
+  {
+   "id": "sid-80A4CC5D-43C9-4938-BA0A-6AB0B41DFBDD",
+   "kind": "function",
+   "name": "Arrange mortgage insurance"
+  },
+  {
+   "id": "sid-82EF8B1B-0789-4CF4-A3E4-C9F1EDEEAC5F",
+   "kind": "event",
+   "name": "Property inspection arranged"
+  },
+  {
+   "id": "sid-C88F7898-CFCF-4317-9543-43329670B392",
+   "kind": "event",
+   "name": "Mortgage insurance arranged"
+  },
+  {
+   "id": "sid-E3E6B0F3-B175-44E9-AC12-602527ED339E",
+   "kind": "or"
+  },
+  {
+   "id": "sid-736BC6F4-29EA-4283-BBA5-7796B66BB02E",
+   "kind": "function",
+   "name": "Disburse loan"
+  },
+  {
+   "id": "sid-9CB1A56B-410F-4AAA-B0AB-A5F41FB042A5",
+   "kind": "event",
+   "name": "Loan disbursed"
+  },
+  {
+   "id": "sid-084E90F6-FC79-4A39-8154-63D7BC5DEC0F",
+   "kind": "xor"
+  },
+  {
+   "id": "sid-F4C383F2-6612-4922-8338-F68F84584B29",
+   "kind": "xor"
+  },
+  {
+   "id": "sid-99C237D3-E0C1-4CEB-8E44-013D466072A7",
+   "kind": "event",
+   "name": "Loan application received"
+  },
+  {
+   "id": "sid-91DE1EAA-3545-4EB1-9FB3-61E05987AB9A",
+   "kind": "and"
+  },
+  {
+   "id": "sid-F54A72C9-F859-4885-BE66-3F7DD44BE0C6",
+   "kind": "xor"
+  }
+ ],
+ "edges": [
+  {
+   "from": "sid-4B88A7D5-CBFD-423A-B82E-ED8CB96AA1F3",
+   "to": "sid-F4C383F2-6612-4922-8338-F68F84584B29"
+  },
+  {
+   "from": "sid-17296F42-AC30-41CD-97C0-F483211F92D6",
+   "to": "sid-66EEBAC4-6577-463C-86A4-1748C4A0DCF4"
+  },
+  {
+   "from": "sid-D523116F-9651-4CD4-86BB-550FC70A4301",
+   "to": "sid-85379C8F-498E-4EAF-BFD1-F5F4BCE09F03"
+  },
+  {
+   "from": "sid-85379C8F-498E-4EAF-BFD1-F5F4BCE09F03",
+   "to": "sid-99C237D3-E0C1-4CEB-8E44-013D466072A7"
+  },
+  {
+   "from": "sid-28FAF466-BC65-4E3C-800C-AF6B0CE41983",
+   "to": "sid-DA1331F7-3D01-4723-989E-8EAB66CE8377"
+  },
+  {
+   "from": "sid-DA1331F7-3D01-4723-989E-8EAB66CE8377",
+   "to": "sid-866FA23F-86FC-4A28-B04C-6C120BBFDDA7"
+  },
+  {
+   "from": "sid-866FA23F-86FC-4A28-B04C-6C120BBFDDA7",
+   "to": "sid-2FE89001-3B54-4028-8EB0-28F97BDA3F4E"
+  },
+  {
+   "from": "sid-2FE89001-3B54-4028-8EB0-28F97BDA3F4E",
+   "to": "sid-11F87847-D12D-4084-BEAA-249BB889ACD7"
+  },
+  {
+   "from": "sid-11F87847-D12D-4084-BEAA-249BB889ACD7",
+   "to": "sid-A9A3FE94-11FB-4566-AAA6-007F652F321C"
+  },
+  {
+   "from": "sid-11F87847-D12D-4084-BEAA-249BB889ACD7",
+   "to": "sid-B660E8D5-D83A-4C35-8113-B905B1519C8D"
+  },
+  {
+   "from": "sid-11F87847-D12D-4084-BEAA-249BB889ACD7",
+   "to": "sid-EC935388-6816-4990-9588-A234EF82AF8D"
+  },
+  {
+   "from": "sid-A9A3FE94-11FB-4566-AAA6-007F652F321C",
+   "to": "sid-084E90F6-FC79-4A39-8154-63D7BC5DEC0F"
+  },
+  {
+   "from": "sid-B660E8D5-D83A-4C35-8113-B905B1519C8D",
+   "to": "sid-EC36373F-FA76-4B62-B62D-FA8A8E45F436"
+  },
+  {
+   "from": "sid-EC935388-6816-4990-9588-A234EF82AF8D",
+   "to": "sid-E7F7D9F8-237B-4D2C-997F-B819BEF4AD2B"
+  },
+  {
+   "from": "sid-66EEBAC4-6577-463C-86A4-1748C4A0DCF4",
+   "to": "sid-D523116F-9651-4CD4-86BB-550FC70A4301"
+  },
+  {
+   "from": "sid-66EEBAC4-6577-463C-86A4-1748C4A0DCF4",
+   "to": "sid-28FAF466-BC65-4E3C-800C-AF6B0CE41983"
+  },
+  {
+   "from": "sid-E7F7D9F8-237B-4D2C-997F-B819BEF4AD2B",
+   "to": "sid-DA0B2E45-AC28-43AA-B26A-FA525934B81D"
+  },
+  {
+   "from": "sid-DA0B2E45-AC28-43AA-B26A-FA525934B81D",
+   "to": "sid-D143644C-96E2-497A-8170-A3E0609AC308"
+  },
+  {
+   "from": "sid-DA0B2E45-AC28-43AA-B26A-FA525934B81D",
+   "to": "sid-2DF0D7A7-FED8-48DF-B826-113501B3AE8C"
+  },
+  {
+   "from": "sid-D143644C-96E2-497A-8170-A3E0609AC308",
+   "to": "sid-EC36373F-FA76-4B62-B62D-FA8A8E45F436"
+  },
+  {
+   "from": "sid-2DF0D7A7-FED8-48DF-B826-113501B3AE8C",
+   "to": "sid-084E90F6-FC79-4A39-8154-63D7BC5DEC0F"
+  },
+  {
+   "from": "sid-AA66698D-08E3-44B2-8649-7098054EF1C9",
+   "to": "sid-B2A30575-DBC8-4EFA-8098-60A85838FB17"
+  },
+  {
+   "from": "sid-D09E8E64-3DFA-4D51-B78E-2C3E7A299677",
+   "to": "sid-8B91A8AF-A8C6-4777-8F61-EAF8B36F4E1D"
+  },
+  {
+   "from": "sid-EC36373F-FA76-4B62-B62D-FA8A8E45F436",
+   "to": "sid-AA66698D-08E3-44B2-8649-7098054EF1C9"
+  },
+  {
+   "from": "sid-B2A30575-DBC8-4EFA-8098-60A85838FB17",
+   "to": "sid-91DE1EAA-3545-4EB1-9FB3-61E05987AB9A"
+  },
+  {
+   "from": "sid-73169CD5-29BA-4474-8531-E06CC18D01F9",
+   "to": "sid-82EF8B1B-0789-4CF4-A3E4-C9F1EDEEAC5F"
+  },
+  {
+   "from": "sid-BFA5DBA6-EF8F-4AF8-8CC6-251C823CF263",
+   "to": "sid-F54A72C9-F859-4885-BE66-3F7DD44BE0C6"
+  },
+  {
+   "from": "sid-BB837D95-4D10-4782-92F2-5958F620D721",
+   "to": "sid-E3E6B0F3-B175-44E9-AC12-602527ED339E"
+  },
+  {
+   "from": "sid-4283A033-F9F7-466F-859D-FDE890DCCFC7",
+   "to": "sid-80A4CC5D-43C9-4938-BA0A-6AB0B41DFBDD"
+  },
+  {
+   "from": "sid-80A4CC5D-43C9-4938-BA0A-6AB0B41DFBDD",
+   "to": "sid-C88F7898-CFCF-4317-9543-43329670B392"
+  },
+  {
+   "from": "sid-82EF8B1B-0789-4CF4-A3E4-C9F1EDEEAC5F",
+   "to": "sid-E3E6B0F3-B175-44E9-AC12-602527ED339E"
+  },
+  {
+   "from": "sid-C88F7898-CFCF-4317-9543-43329670B392",
+   "to": "sid-E3E6B0F3-B175-44E9-AC12-602527ED339E"
+  },
+  {
+   "from": "sid-E3E6B0F3-B175-44E9-AC12-602527ED339E",
+   "to": "sid-736BC6F4-29EA-4283-BBA5-7796B66BB02E"
+  },
+  {
+   "from": "sid-736BC6F4-29EA-4283-BBA5-7796B66BB02E",
+   "to": "sid-9CB1A56B-410F-4AAA-B0AB-A5F41FB042A5"
+  },
+  {
+   "from": "sid-084E90F6-FC79-4A39-8154-63D7BC5DEC0F",
+   "to": "sid-D09E8E64-3DFA-4D51-B78E-2C3E7A299677"
+  },
+  {
+   "from": "sid-F4C383F2-6612-4922-8338-F68F84584B29",
+   "to": "sid-17296F42-AC30-41CD-97C0-F483211F92D6"
+  },
+  {
+   "from": "sid-99C237D3-E0C1-4CEB-8E44-013D466072A7",
+   "to": "sid-F4C383F2-6612-4922-8338-F68F84584B29"
+  },
+  {
+   "from": "sid-91DE1EAA-3545-4EB1-9FB3-61E05987AB9A",
+   "to": "sid-73169CD5-29BA-4474-8531-E06CC18D01F9"
+  },
+  {
+   "from": "sid-91DE1EAA-3545-4EB1-9FB3-61E05987AB9A",
+   "to": "sid-BFA5DBA6-EF8F-4AF8-8CC6-251C823CF263"
+  },
+  {
+   "from": "sid-F54A72C9-F859-4885-BE66-3F7DD44BE0C6",
+   "to": "sid-BB837D95-4D10-4782-92F2-5958F620D721"
+  },
+  {
+   "from": "sid-F54A72C9-F859-4885-BE66-3F7DD44BE0C6",
+   "to": "sid-4283A033-F9F7-466F-859D-FDE890DCCFC7"
+  }
+ ]
+}
