@@ -13,6 +13,68 @@ come from public research collections in their own formats. What the
 corpus does buy is the *shapes*, and a measurement of how many of them the
 converter accepts (below).
 
+## Which of these came from ARIS
+
+This tool converts ARIS exports, so it matters that most of this corpus
+did not come from ARIS:
+
+| Models | Drawn in | ARIS artefact |
+|---|---|---|
+| the five `sap/` models | ARIS — the *ARIS for mySAP* database, IDS Scheer | yes |
+| the four kept models | Oryx / Signavio, a browser editor | no |
+
+The SAP models keep their ARIS identity in the data: each `<epc>` carries
+an ARIS internal model id in its `name` attribute — `1Tr_fyhp`,
+`1Ex_egln`, `1Im_lcbm` — under the German ARIS module prefixes (`1Tr`
+Treasury, `1Ex` externes Rechnungswesen, `1Im` Immobilien). That is
+first-hand evidence, readable in the fetched files. The onward step, ARIS
+→ AML → EPML, is what the literature reports; it is not visible in the
+data and is not verified here.
+
+The BPMAI four are EPCs by notation only. They earn their place because
+the shapes a modeller draws are what `structure.py` has to survive, and
+because they are the corpus's only mortgage process — but they say
+nothing about what an ARIS export looks like.
+
+## Why there is no AML file here
+
+AML — ARIS's own XML export, defined by `ARIS-Export.dtd` — is the format
+`aris/export_epc.js` sidesteps and the one Arc C2 would read. No EPC in
+it is public. Searched 2026-09-04, all empty:
+
+- **ARIS Community** — the DTD ships on the ARIS DVD (`%ARISHOME%\aml\`)
+  and in the ARIS Download Center; no sample export is attached to the
+  posts that discuss it.
+- **`stavnstrup/nisp2aris`** — carries the DTD and an XSL that *writes*
+  AML, but its input is a NATO standards taxonomy: no EPC, and no AML
+  output committed.
+- **`koppor/oryx-editor`** — carries the DTD and Mendling's
+  `AML2EPML_2.xslt` / `EPML2AML_2.xslt`, but grepping the whole tree for
+  `<!DOCTYPE AML` and `<AML` returns nothing, and its `TestAMLSupport`
+  is an empty stub.
+- **Zenodo, figshare, 4TU** — nothing. Germany's *Nationale
+  Prozessbibliothek* was restricted to public-sector staff and closed in
+  2015.
+- **ARIS Express `.adf`** — genuinely ARIS, and downloadable from ARIS
+  Community, but the `model` and `data` members inside the ZIP are
+  encrypted: high-entropy bytes, matching neither zlib, raw deflate,
+  gzip, bzip2 nor LZMA. Only `metainfo.xml` and a `preview.js`
+  drawing-command stream are readable, and rebuilding a graph from a
+  render stream would be exactly the invented structure this project
+  refuses.
+
+AML export needs a licensed ARIS Architect or Designer. That is not a gap
+a better search closes; it is A1b's adopter gate, stated in terms of what
+can be downloaded.
+
+Two things *are* public and will help C2 when it starts: the full AML
+grammar (`ARIS-Export.dtd`, 431 lines, in `nisp2aris`; the Oryx copy is a
+45-line subset) and the AML↔EPML stylesheets in Oryx. Neither carries the
+numbers a reader needs — `TypeNum`, `SymbolNum` and `Model.Type` are all
+declared `NMTOKEN`, so which integer means "function" or "XOR connector"
+lives in ARIS's method tables and in no published document. That is the
+same gap `aris/export_epc.js` warns adopters about in its header.
+
 ## Layout
 
     source/     the four kept files as published, in their upstream format
@@ -37,10 +99,11 @@ files are renamed to say what they model. `fetch_sap.py` does the
 renaming itself, over `epml_to_json.py`. All three drop what the contract
 has no place for (information objects, IT systems, annotations) and pass
 names through untouched — typos, line breaks and duplicate labels
-included, because pumllint's job is to report them. None of them is a
-reader for the CLI: EPML and Oryx JSON are not accepted input formats,
-and adding one is a roadmap decision (Arc C), not something this corpus
-presumes.
+included, because pumllint's job is to report them. `epml_to_json.py` no
+longer owns its mapping: it writes what `aris2puml.readers.epml` produces,
+so the fixtures and the CLI's `--from epml` cannot drift apart. Oryx JSON
+has no reader and is not an accepted input format; adding one would be a
+roadmap decision (Arc C), not something this corpus presumes.
 
 ## The models
 

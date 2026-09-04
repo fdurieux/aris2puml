@@ -62,6 +62,14 @@ Two rules that follow from the pin to pumllint:
   replaced by a definition-GUID-plus-index id. Still unrun. A1 therefore
   reads as two halves: A1a, real-world shapes — served by the corpus and
   the census; A1b, the script at runtime — adopter-gated, unchanged.*
+  *2026-09-04, later still: A1b's gate is confirmed unavoidable. A search
+  for a public ARIS export in AML found none — not on ARIS Community, not
+  in the two open-source projects that carry `ARIS-Export.dtd`
+  (`nisp2aris`, `oryx-editor`, both DTD-and-stylesheet only), not on
+  Zenodo, figshare or 4TU. ARIS Express `.adf` files are downloadable and
+  genuinely ARIS, but their payload is encrypted. AML export needs a
+  licensed Architect or Designer, so no amount of searching substitutes
+  for the adopter. Recorded in `tests/fixtures/corpus/README.md`.*
 - [ ] **A2. Multiple start events** — the most common refusal a real EPC
   will hit ("Order received" / "Order changed" joined by an XOR). Design:
   an XOR join of start events → `start` then an immediate `if`/`switch`
@@ -129,6 +137,16 @@ Two rules that follow from the pin to pumllint:
   versions, because the schema is proprietary and version-dependent.*
   Large. Stays behind C1 unless A1 shows the report script is unworkable
   in the adopter's environment.
+  *2026-09-04: the gate is firmer than it reads. No public AML EPC exists
+  to sample from at all (see A1b's note), so both versions must come from
+  adopters. What is public is the grammar — `ARIS-Export.dtd`, 431 lines,
+  in `stavnstrup/nisp2aris` — and Mendling's AML↔EPML stylesheets in
+  `koppor/oryx-editor`. Those settle the element structure but not the
+  constants: `TypeNum`, `SymbolNum` and `Model.Type` are `NMTOKEN` in the
+  DTD, so the integers for function, event and connector live in ARIS's
+  method tables. A reader built on the DTD alone would parse the file and
+  still not know what it read — the same gap `aris/export_epc.js` carries
+  in its header.*
 
 ## Arc D — Operations (P2, wait for pull)
 
