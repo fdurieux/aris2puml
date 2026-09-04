@@ -87,6 +87,7 @@ roadmap says when one would.
 | OR split/join | `fork` preceded by `' epc: OR-split <id>`, plus a warning on stderr | — |
 | loop (back edge to an XOR join below the header) | `repeat … repeat while (Back event?) is (Back event) not (Exit event)` | ACT004 |
 | loop whose XOR both merges the retry and decides | `while (Back event?) is (Back event) … endwhile (Exit event)` | ACT004 |
+| loop with one function on the return path | `repeat` … `backward :Function;` … `repeat while (…)`; events and the org unit there are dropped, with a warning | ACT006, ACT004 |
 | process interface | `' aris: interface <ref>` then `:Name;` | ACT006 |
 | process name, id, owner | `@startuml <slug>`, `title`, `footer owner: … — ARIS process <id>` | GEN001/002/006/007 |
 

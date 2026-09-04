@@ -30,6 +30,7 @@ Everything else raises :class:`StructureError`.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import NamedTuple
 
 from aris2puml.model import Node, Process
 
@@ -39,6 +40,15 @@ EXIT = "$exit"
 
 class StructureError(ValueError):
     pass
+
+
+class _Tail(NamedTuple):
+    """What a back edge tells us about the loop it closes."""
+    header: str
+    back_event: str | None      # the outcome event that labels the loop branch
+    branch_head: str | None     # the split's successor on that branch; None = the header
+    backward: str | None        # the single function on the return path, if any
+    dropped: tuple[str, ...]    # events there that `backward` cannot carry
 
 
 # -- block types -----------------------------------------------------------
@@ -84,6 +94,7 @@ class Loop:
     condition: str
     back_label: str | None
     exit_label: str | None
+    backward: Node | None = None   # the one function run on the way back round
 
 
 @dataclass
@@ -197,21 +208,29 @@ class _Walker:
                 self.headers.add(v)
                 continue
             un = proc.node(u)
-            if un.kind == "event":
-                preds = proc.predecessors(u)
-                if len(preds) != 1 or proc.node(preds[0]).kind != "xor":
-                    raise StructureError(f"back edge {u}->{v}: event {u} is not an XOR outcome")
-                split, back_event = preds[0], u
-            elif un.kind == "xor":
-                split, back_event = u, None
+            preds = proc.predecessors(u)
+            if un.kind == "xor":
+                tail = _Tail(v, None, None, None, ())
+                split = u
+            elif un.kind == "event" and len(preds) == 1 and proc.node(preds[0]).kind == "xor":
+                tail = _Tail(v, u, u, None, ())
+                split = preds[0]
             else:
-                raise StructureError(f"back edge {u}->{v}: loops must leave from an XOR split")
+                # The return path does work before it comes back: find the XOR
+                # that chose it, and the one function on the way round.
+                walked = self._return_path(u)
+                if walked is None:
+                    raise StructureError(
+                        f"back edge {u}->{v}: a loop's return path must run from an XOR "
+                        f"split through exactly one function"
+                    )
+                split, tail = walked[0], _Tail(v, *walked[1:])
             hn = proc.node(v)
             if hn.kind != "xor" or len(proc.predecessors(v)) < 2:
                 raise StructureError(f"back edge {u}->{v}: loop header {v} is not an XOR join")
             if split in self.loops:
                 raise StructureError(f"split {split} closes two loops")
-            self.loops[split] = (v, back_event)
+            self.loops[split] = tail
             self.headers.add(v)
         self.seen: set[str] = set()
 
@@ -234,6 +253,39 @@ class _Walker:
             seen.add(cur)
             stack.extend(self.p.successors(cur))
         return False
+
+    def _return_path(self, u: str):
+        """Walk back from a back edge's source to the XOR split that chose it.
+
+        Returns ``(split, back event, branch head, the one function, the
+        events it costs)``, or ``None`` when the way round is not a plain
+        chain from a split through exactly one function — `backward` holds a
+        single action, so anything else has no faithful form.
+        """
+        chain: list[str] = []
+        cur, seen = u, set()
+        while cur not in seen:
+            seen.add(cur)
+            if self.p.node(cur).kind not in ("function", "interface", "event"):
+                return None                       # a connector on the way round
+            chain.append(cur)
+            preds = self.p.predecessors(cur)
+            if len(preds) != 1:
+                return None                       # not a chain
+            head = preds[0]
+            if self.p.node(head).kind == "xor" and len(self.p.successors(head)) > 1:
+                break
+            cur = head
+        else:
+            return None
+        branch_head = chain[-1]
+        rest = chain[:-1] if self.p.node(branch_head).kind == "event" else chain
+        back_event = branch_head if self.p.node(branch_head).kind == "event" else None
+        acts = [n for n in rest if self.p.node(n).kind in ("function", "interface")]
+        if len(acts) != 1:
+            return None
+        dropped = tuple(n for n in rest if self.p.node(n).kind == "event")
+        return head, back_event, branch_head, acts[0], dropped
 
     def _mark(self, nid: str) -> None:
         if nid in self.seen:
@@ -332,6 +384,10 @@ class _Walker:
         while cur is not None and cur not in path:
             path.add(cur)
             n = self.p.node(cur)
+            if cur in self.headers:
+                # A loop header is fed from inside by its own back edge. That
+                # makes every start reaching it look folded; it is the entry.
+                return False
             if n.kind in ("function", "interface"):
                 return False
             if n.kind in CONNECTORS and len(self.p.successors(cur)) > 1:
@@ -460,7 +516,10 @@ class _Walker:
         block, _ = self._region(real, join)
         if join == EXIT:
             return [block], None
-        rest, reached = self.walk(self._after_join(join), None)
+        # When the starts meet *at* a loop header, the walk must enter the
+        # loop there rather than consume the join as a plain merge.
+        start = join if join in self.headers else self._after_join(join)
+        rest, reached = self.walk(start, None)
         return [block] + rest, reached
 
     def _branch_start(self, s: str, kind: str) -> tuple[str | None, str | None, bool]:
@@ -556,28 +615,45 @@ class _Walker:
 
     def _loop(self, header: str) -> Loop:
         self._mark(header)
-        split = next(s for s, (h, _) in self.loops.items() if h == header)
+        split = next(s for s, t in self.loops.items() if t.header == header)
         hn = self.p.node(header)
         body, reached = self.walk(self._single_succ(header), split)
         if reached != split:
             raise StructureError(f"loop at {header} never reaches its split {split}")
         self._mark(split)
-        _, back_event = self.loops[split]
+        tail = self.loops[split]
         succs = self.p.successors(split)
         if len(succs) != 2:
             raise StructureError(f"loop split {split} must have exactly 2 outcomes, has {len(succs)}")
-        back_head = back_event if back_event is not None else header
+        back_head = tail.branch_head if tail.branch_head is not None else header
         exits = [s for s in succs if s != back_head]
         if len(exits) != 1:
             raise StructureError(f"loop split {split}: cannot tell the exit from the back edge")
         back_label = None
-        if back_event:
-            self._mark(back_event)
-            back_label = self.p.node(back_event).name
+        if tail.back_event:
+            self._mark(tail.back_event)
+            back_label = self.p.node(tail.back_event).name
+        backward = None
+        if tail.backward is not None:
+            self._mark(tail.backward)
+            backward = self.p.node(tail.backward)
+            for e in tail.dropped:
+                self._mark(e)
+            if tail.dropped:
+                names = ", ".join(self.p.node(e).name for e in tail.dropped)
+                self.warnings.append(
+                    f"{split}: `backward` carries one action and no arrow, so the return "
+                    f"path's event(s) are dropped: {names}"
+                )
+            if backward.lane is not None:
+                self.warnings.append(
+                    f"{tail.backward}: a `backward` action takes no swimlane, so its "
+                    f"org unit is dropped"
+                )
         label, start, ends = self._branch_start(exits[0], "xor")
         self._after_loop = None if ends else start
         cond = (back_label or label or hn.name or "Again") + "?"
-        loop = Loop(hn, body, cond, back_label, label)
+        loop = Loop(hn, body, cond, back_label, label, backward)
         if ends:
             loop.body_end = Stop(self.p.node(exits[0]))  # type: ignore[attr-defined]
         return loop

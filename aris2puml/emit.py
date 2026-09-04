@@ -140,6 +140,11 @@ class _Emitter:
         self.out(depth, "repeat")
         self.lane = None
         self.blocks(lp.body, depth + 1)
+        if lp.backward is not None:
+            # One action, no swimlane and no arrow label: `backward` takes
+            # nothing else. structure.py warns about what that costs.
+            self.out(depth, f"backward :{lp.backward.name};")
+            self.lane = None
         tail = f"repeat while ({lp.condition})"
         if lp.back_label or lp.exit_label:
             tail += f" is{self._label(lp.back_label)} not{self._label(lp.exit_label)}"

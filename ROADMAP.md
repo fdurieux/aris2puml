@@ -128,13 +128,25 @@ Two rules that follow from the pin to pumllint:
 
   *The `while` shape is done: one XOR that both merges and decides becomes
   `while … endwhile`, drawn from `mortgage-application-variant.json`
-  (`tests/test_loops.py`). The `backward` shape is the bigger prize and
-  the obvious next step — 494 of its 695 back edges have exactly one
-  activity on the return path, which `backward :…;` says exactly; the
-  remaining 201 have none or several and have no structured form. It
-  needs a mapping-table row for `backward` in pumllint's guide first:
-  pumllint's parser already accepts the construct, but the guide, which
-  owns the table, does not list it.*
+  (`tests/test_loops.py`).*
+  *2026-09-04, later: the `backward` shape is done too. pumllint#135 added
+  the mapping-table row and taught its parser to model the construct, so
+  the action on a return path is checked by ACT006 like any other; this
+  repo now emits `repeat … backward :Function; … repeat while (…)` when a
+  loop's return path runs through exactly one function. Events and the org
+  unit on that path are dropped — `backward` takes one action, no arrow and
+  no swimlane — each with a warning, in the same spirit as the OR
+  approximation. The 201 back edges with no function or several stay
+  refused: there is no faithful form for them.*
+  *Fixed in the same pass, because it blocked the shape entirely: a start
+  event feeding a loop header was classified as a mid-process trigger (its
+  header looks "fed from inside" by its own back edge), which left the
+  canonical rework loop with no entry at all. That was an A2 residual, not
+  a loop-shape problem — it accounted for all three "no entry" refusals in
+  the SAP set, which now resolve to their real state.*
+  *The SAP census moves 445 → 447 of 604. Neither mortgage model converts
+  even now: both refuse on an AND split that joins at an OR, which is a
+  real defect and not a loop shape.*
 - [ ] **B2. `--strict`** — refuse OR connectors and any other
   approximation instead of warning, for teams gating on conversion
   fidelity. Small. *2026-09-04: folded mid-flow triggers (A2) are the

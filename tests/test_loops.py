@@ -131,6 +131,98 @@ def test_two_back_edges_into_one_header_are_refused():
         structure(proc)
 
 
+# --- work on the return path: `backward` -------------------------------------
+
+def _rework_with_return_work(lanes=()):
+    """The corpus shape behind `mortgage-application.json`: the split's
+    outcome runs a function and an event before rejoining the header."""
+    return build(
+        [("e0", "event", "Loan application received"),
+         ("h", "xor"),
+         ("f1", "function", "Check loan application", *(("desk",) if lanes else ())),
+         ("x", "xor"),
+         ("e2", "event", "Customer information invalid"),
+         ("f3", "function", "Contact customer", *(("sales",) if lanes else ())),
+         ("e4", "event", "Loan application received"),
+         ("e5", "event", "Customer information valid"),
+         ("f6", "function", "Register customer information"),
+         ("e7", "event", "Loan application registered")],
+        ["e0>h", "h>f1", "f1>x", "x>e2", "e2>f3", "f3>e4", "e4>h",
+         "x>e5", "e5>f6", "f6>e7"],
+        lanes=lanes,
+    )
+
+
+def test_one_function_on_the_return_path_becomes_backward():
+    assert _lines(_rework_with_return_work()) == [
+        "start",
+        "-> Loan application received;",
+        "repeat",
+        ":Check loan application;",
+        "backward :Contact customer;",
+        "repeat while (Customer information invalid?) is (Customer information invalid)"
+        " not (Customer information valid)",
+        ":Register customer information;",
+        "-> Loan application registered;",
+        "stop",
+        "@enduml",
+    ]
+
+
+def test_events_on_the_return_path_are_dropped_with_a_warning():
+    """`backward` takes one action and no arrow, so the event on the way
+    round has nowhere to go. Dropped, and said out loud."""
+    s = structure(_rework_with_return_work())
+    assert s.warnings == [
+        "x: `backward` carries one action and no arrow, so the return path's "
+        "event(s) are dropped: Loan application received"
+    ]
+
+
+def test_a_swimlane_on_the_backward_function_is_dropped_with_a_warning():
+    s = structure(_rework_with_return_work(lanes=[("desk", "Desk"), ("sales", "Sales")]))
+    assert any("takes no swimlane" in w for w in s.warnings)
+    assert "|Sales|" not in _lines(_rework_with_return_work(
+        lanes=[("desk", "Desk"), ("sales", "Sales")]))
+
+
+def test_two_functions_on_the_return_path_are_refused():
+    """`backward` holds one action; two have no faithful form."""
+    proc = build(
+        [("e0", "event", "S"), ("h", "xor"), ("f1", "function", "Try it"), ("x", "xor"),
+         ("e2", "event", "Again"), ("f3", "function", "Fix it"), ("f4", "function", "Log it"),
+         ("e5", "event", "Done"), ("f6", "function", "Finish it"), ("e7", "event", "Finished")],
+        ["e0>h", "h>f1", "f1>x", "x>e2", "e2>f3", "f3>f4", "f4>h",
+         "x>e5", "e5>f6", "f6>e7"],
+    )
+    with pytest.raises(StructureError, match="exactly one function"):
+        structure(proc)
+
+
+def test_a_return_path_with_no_function_is_refused():
+    proc = build(
+        [("e0", "event", "S"), ("h", "xor"), ("f1", "function", "Try it"), ("x", "xor"),
+         ("e2", "event", "Again"), ("e3", "event", "Still going"),
+         ("e5", "event", "Done"), ("f6", "function", "Finish it"), ("e7", "event", "Finished")],
+        ["e0>h", "h>f1", "f1>x", "x>e2", "e2>e3", "e3>h", "x>e5", "e5>f6", "f6>e7"],
+    )
+    with pytest.raises(StructureError, match="exactly one function"):
+        structure(proc)
+
+
+def test_a_connector_on_the_return_path_is_refused():
+    proc = build(
+        [("e0", "event", "S"), ("h", "xor"), ("f1", "function", "Try it"), ("x", "xor"),
+         ("e2", "event", "Again"), ("a", "and"), ("f3", "function", "Fix it"),
+         ("f4", "function", "Log it"), ("b", "and"),
+         ("e5", "event", "Done"), ("f6", "function", "Finish it"), ("e7", "event", "Finished")],
+        ["e0>h", "h>f1", "f1>x", "x>e2", "e2>a", "a>f3", "a>f4", "f3>b", "f4>b", "b>h",
+         "x>e5", "e5>f6", "f6>e7"],
+    )
+    with pytest.raises(StructureError, match="exactly one function"):
+        structure(proc)
+
+
 def test_the_repeat_shape_still_emits_repeat():
     """v0.1.0's loop: the split is below the header, not the header itself."""
     proc = build(

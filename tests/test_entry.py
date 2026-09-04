@@ -181,14 +181,18 @@ def test_an_alternative_entry_with_its_own_function_is_an_entry_not_a_trigger():
     ]
 
 
-def test_every_start_being_a_trigger_is_refused():
+def test_starts_that_meet_at_a_loop_header_enter_the_loop():
+    """A loop header is fed from inside by its own back edge, which used to
+    make every start reaching it look like a mid-process trigger and leave the
+    process with no entry at all. The starts are the entry; the walk enters
+    the loop at the header rather than consuming it as a plain merge."""
     proc = build(
         [("e0", "event", "S1"), ("e1", "event", "S2"), ("j", "xor"), ("k", "xor"), ("f", "function", "F")],
         ["e0>j", "e1>j", "j>k", "k>j", "k>f"],
     )
-    with pytest.raises(StructureError) as exc:
-        structure(proc)
-    assert "every start event is a mid-process trigger" in str(exc.value)
+    lines = _lines(proc)
+    assert lines[:4] == ["start", "if (Trigger?) then (S1)", "else (S2)", "endif"]
+    assert "repeat" in lines and "repeat while (Again?)" in lines
 
 
 def test_bare_case_is_emitted_as_empty_parentheses():
