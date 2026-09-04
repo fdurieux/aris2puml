@@ -63,7 +63,8 @@ def _check(paths: list[Path], config: str | None, fail_on: str | None) -> int:
     try:
         from pumllint.cli import main as pumllint_main
     except ImportError:
-        print("aris2puml: --check needs pumllint (pip install aris2puml[check])", file=sys.stderr)
+        print('aris2puml: --check needs pumllint (pip install "aris2puml[check] @ '
+              'git+https://github.com/fdurieux/aris2puml")', file=sys.stderr)
         return 2
     argv = [p.as_posix() for p in paths]
     if config:
