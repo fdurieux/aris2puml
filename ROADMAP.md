@@ -70,12 +70,28 @@ Two rules that follow from the pin to pumllint:
   genuinely ARIS, but their payload is encrypted. AML export needs a
   licensed Architect or Designer, so no amount of searching substitutes
   for the adopter. Recorded in `tests/fixtures/corpus/README.md`.*
-- [ ] **A2. Multiple start events** — the most common refusal a real EPC
-  will hit ("Order received" / "Order changed" joined by an XOR). Design:
-  an XOR join of start events → `start` then an immediate `if`/`switch`
-  with each event as a branch label and empty bodies that merge; an AND
-  join → `start` then `fork` with `-> Event;` per branch. Structural change
-  in `structure.py` (`_Walker.__init__` start handling); emitter unchanged.
+- [x] **A2. Multiple start events** *(2026-09-04)* — shipped as *entry
+  regions* plus *mid-flow triggers*. Entry region: start events grouped by
+  the join each reaches, following the post-dominator tree, into nested
+  `if`/`switch` (XOR join) or `fork` (AND/OR join) blocks right after
+  `start`, the events as branch labels; chains of XOR joins flatten into
+  one `switch`; a nested group's label is its event names joined by its
+  join's word. Mid-flow trigger: a start event whose path meets a join fed
+  from inside the flow (after a split) is folded into the arrow label at
+  that join — merged with the preceding event's label — with an
+  `' epc: external trigger` marker and a stderr warning; only pure
+  event/join trees are folded, a trigger path carrying a function stays
+  refused. Measured on the SAP set: **26.3 % → 73.7 %** converting (445 of
+  604; 68 carry a trigger warning); every converted diagram passes
+  PlantUML `-checkonly`. The flat "one virtual split" design was measured
+  first and rejected at 47.6 %: SAP joins its entries in trees.
+  *Decision record — rendering of mid-flow triggers, chosen by the
+  maintainer 2026-09-04 from three options: fold into the arrow label and
+  warn (chosen; 73.7 %), refuse with a precise message (63.1 %), or a
+  `note` (counts against pumllint's GEN008). Re-litigate only with an
+  adopter whose gate needs the refusal: B2's `--strict` is the planned
+  form.* Residual: 0.5 % of the SAP set has no entry at all (every start
+  is a trigger), recorded, not queued.
   *2026-09-04: measured. 69.5 % of the 604 SAP reference EPCs and 23.5 %
   of the 4332 BPMAI EPCs are refused for this and nothing else — the
   largest single refusal in both collections, and the one that blocks
@@ -100,7 +116,8 @@ Two rules that follow from the pin to pumllint:
   that follows a function, not from an XOR outcome.*
 - [ ] **B2. `--strict`** — refuse OR connectors and any other
   approximation instead of warning, for teams gating on conversion
-  fidelity. Small.
+  fidelity. Small. *2026-09-04: folded mid-flow triggers (A2) are the
+  second approximation this must refuse.*
 - [ ] **B3. `--notes`** — information objects, documents and IT systems as
   `note right` on their function; opt-in because pumllint's GEN008 counts
   notes. Extends the JSON contract additively (a `"data"` array; version

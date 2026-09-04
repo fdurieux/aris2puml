@@ -23,6 +23,9 @@ from aris2puml.readers.json_ import ReadError, read_json          # noqa: E402
 from aris2puml.structure import StructureError, structure         # noqa: E402
 
 BUCKETS = (
+    ("every start event is a mid-process trigger", "no entry: every start is a mid-flow trigger (A2 residual)"),
+    ("share no join below", "start events without a common join (A2 residual)"),
+    ("does not reach the entry join", "entry branch misses the entry join (A2 residual)"),
     ("start node", "multiple start events (roadmap A2)"),
     ("back edge", "loop shape not supported (roadmap B1)"),
     ("loops must", "loop shape not supported (roadmap B1)"),

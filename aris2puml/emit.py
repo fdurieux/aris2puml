@@ -13,7 +13,7 @@ import re
 
 from aris2puml.model import Process
 from aris2puml.structure import (
-    Action, Branch, Decision, EventArrow, Loop, Parallel, Stop, Structured,
+    JOINWORD, Action, Branch, Decision, EventArrow, Loop, Parallel, Stop, Structured, Trigger,
 )
 
 
@@ -79,8 +79,22 @@ class _Emitter:
                 self.parallel(b, depth)
             elif isinstance(b, Loop):
                 self.loop(b, depth)
+            elif isinstance(b, Trigger):
+                self.trigger(b, depth)
             else:  # pragma: no cover
                 raise TypeError(type(b))
+
+    def trigger(self, t: Trigger, depth: int) -> None:
+        # An external start event entering the flow here. Two arrow labels
+        # in a row would leave only the second visible, so merge with a
+        # preceding event label into one arrow.
+        label = t.label
+        prev = self.lines[-1].strip() if self.lines else ""
+        if prev.startswith("-> ") and prev.endswith(";"):
+            self.lines.pop()
+            label = prev[3:-1] + JOINWORD[t.join.kind] + label
+        self.out(depth, f"' epc: external trigger at {t.join.id} ({t.join.kind})")
+        self.out(depth, f"-> {label};")
 
     @staticmethod
     def _label(label: str | None) -> str:
@@ -99,7 +113,9 @@ class _Emitter:
         else:
             self.out(depth, f"switch ({d.condition})")
             for br in d.branches:
-                self.out(depth, f"case{self._label(br.label)}")
+                # a bare `case` is a PlantUML syntax error; `case ()` renders
+                # (and shows the missing outcome event, as ACT003 does for if)
+                self.out(depth, f"case ({br.label or ''})")
                 self.lane = None
                 self.blocks(br.body, depth + 1)
             self.out(depth, "endswitch")
