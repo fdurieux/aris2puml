@@ -11,7 +11,9 @@ output is **activity diagrams, not BPMN** — if you have BPMN in hand, run
 [`bpmnlint`](https://github.com/bpmn-io/bpmnlint) on it instead.
 
 ```bash
-pip install aris2puml            # + pumllint for --check: pip install "aris2puml[check]"
+# Not on PyPI yet (roadmap A4) — install from git:
+pip install git+https://github.com/fdurieux/aris2puml
+pip install "aris2puml[check] @ git+https://github.com/fdurieux/aris2puml"   # + pumllint, for --check
 
 aris2puml order_to_cash.json -o processes/
 aris2puml order_to_cash.json -o processes/ --check -c conventions.toml --fail-on major
