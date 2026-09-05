@@ -28,6 +28,7 @@ from pathlib import Path
 KINDS = {"Function": "function", "Event": "event", "XorConnector": "xor",
          "AndConnector": "and", "OrConnector": "or",
          "ProcessInterface": "interface"}
+DATA = {"Data": "information", "System": "system"}
 
 
 def _shapes(shape: dict):
@@ -50,6 +51,7 @@ def convert(doc: dict, name: str, pid: str) -> dict:
     lanes = {rid: " ".join(str(s["properties"].get("title", "")).split())
              for rid, s in by_id.items() if stencil[rid] == "Organization"}
     lane_of: dict[str, str] = {}
+    data = []
     for rid, shape in by_id.items():
         if stencil[rid] != "Relation":
             continue
@@ -57,6 +59,10 @@ def convert(doc: dict, name: str, pid: str) -> dict:
         for a, b in (ends, ends[::-1]):
             if a in lanes and stencil.get(b) == "Function":
                 lane_of[b] = a
+            if stencil.get(a) in DATA and stencil.get(b) == "Function":
+                data.append({"id": a, "kind": DATA[stencil[a]],
+                             "name": " ".join(str(by_id[a]["properties"].get("title", "")).split()),
+                             "node": b})
 
     nodes, edges = [], []
     for rid, shape in by_id.items():
@@ -78,13 +84,16 @@ def convert(doc: dict, name: str, pid: str) -> dict:
                 edges.append({"from": rid, "to": target})
 
     used = set(lane_of.values())
-    return {
+    doc = {
         "version": 1,
         "process": {"id": pid, "name": name, "owner": ""},
         "lanes": [{"id": rid, "name": nm} for rid, nm in lanes.items() if rid in used],
         "nodes": nodes,
         "edges": edges,
     }
+    if data:
+        doc["data"] = data
+    return doc
 
 
 def _is_epc(doc: dict) -> bool:

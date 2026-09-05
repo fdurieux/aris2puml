@@ -27,6 +27,8 @@ received</name></event>
   <function id="f2"><name>Reject claim</name></function>
   <event id="e5"><name>Claim rejected</name></event>
   <dataField id="d1"><name>Claim form</name></dataField>
+  <relation from="d1" to="f1" type="input"/>
+  <application id="s1"><name>Claims system</name></application>
   <arc id="a1"><flow source="e1" target="f1"/></arc>
   <arc id="a2"><flow source="f1" target="x1"/></arc>
   <arc id="a3"><flow source="x1" target="e2"/></arc>
@@ -65,7 +67,8 @@ def test_reads_every_epc_with_lanes_interfaces_and_collapsed_names(doc):
     assert a.node("f1").lane == "r1" and a.node("f2").lane is None
     assert a.node("e1").name == "Claim received"  # line break collapsed
     assert a.node("p1").kind == "interface" and a.node("p1").ref == "9"
-    assert all(n.id != "d1" for n in a.nodes)  # data objects dropped
+    assert all(n.id not in ("d1", "s1") for n in a.nodes)  # data objects are not nodes
+    assert [(d.kind, d.name, d.node, d.role) for d in a.data] == [("information", "Claim form", "f1", "input")]
     assert len(a.edges) == 8
 
 

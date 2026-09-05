@@ -24,10 +24,28 @@ def slug(name: str) -> str:
 
 
 class _Emitter:
-    def __init__(self, proc: Process):
+    def __init__(self, proc: Process, notes: bool = False):
         self.p = proc
+        self.notes = notes
         self.lines: list[str] = []
         self.lane: str | None = None
+
+    def _note(self, depth: int, node_id: str) -> None:
+        """With --notes: the function's information objects, documents and
+        systems as one `note right` — one, not one per object, since
+        pumllint's GEN008 counts notes."""
+        if not self.notes:
+            return
+        items = [f"{d.role or d.kind}: {d.name}" for d in self.p.data_of(node_id)]
+        if not items:
+            return
+        if len(items) == 1:
+            self.out(depth, f"note right: {items[0]}")
+            return
+        self.out(depth, "note right")
+        for item in items:
+            self.out(depth, f"  {item}")
+        self.out(depth, "end note")
 
     def out(self, depth: int, text: str) -> None:
         self.lines.append("  " * depth + text)
@@ -68,6 +86,7 @@ class _Emitter:
                     self.out(depth, f"' aris: interface {b.node.ref or '?'}")
                 self._lane(depth, b.node.lane)
                 self.out(depth, f":{b.node.name};")
+                self._note(depth, b.node.id)
             elif isinstance(b, EventArrow):
                 self.out(depth, f"-> {b.node.name};")
             elif isinstance(b, Stop):
@@ -144,6 +163,7 @@ class _Emitter:
             # One action, no swimlane and no arrow label: `backward` takes
             # nothing else. structure.py warns about what that costs.
             self.out(depth, f"backward :{lp.backward.name};")
+            self._note(depth, lp.backward.id)
             self.lane = None
         tail = f"repeat while ({lp.condition})"
         if lp.back_label or lp.exit_label:
@@ -183,7 +203,8 @@ class _Emitter:
         return "\n".join(self.lines) + "\n"
 
 
-def emit(proc: Process, structured: Structured, name: str | None = None) -> str:
+def emit(proc: Process, structured: Structured, name: str | None = None,
+         notes: bool = False) -> str:
     """The diagram, named ``name`` (the CLI's file stem) or the process
-    name's slug."""
-    return _Emitter(proc).render(structured, name)
+    name's slug; with ``notes``, each function's data objects as a note."""
+    return _Emitter(proc, notes).render(structured, name)

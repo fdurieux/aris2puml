@@ -13,7 +13,9 @@
  *   unconfirmed Item.Attribute(...).getValue()/IsMaximized(),
  *               Context.createOutputObject(OUTTEXT)/OutputTxt/WriteReport,
  *               ST_OPR_XOR_1/AND_1/OR_1 (and the _2 variants), AT_ID,
- *               AT_PERSON_RESPONS, OT_ORG_UNIT, OT_POS, OT_PERS_TYPE, and
+ *               AT_PERSON_RESPONS, OT_ORG_UNIT, OT_POS, OT_PERS_TYPE,
+ *               OT_INFO_CARR, OT_CLST, OT_TECH_TRM, OT_APPL_SYS_TYPE,
+ *               CT_IS_INP_FOR, CT_HAS_OUT, CxnOcc.Cxn().TypeNum(), and
  *               whether OutEdges' argument is a direction or a kind filter
  *
  * Node ids are the object definition GUID plus the occurrence index in
@@ -37,6 +39,14 @@ KIND[Constants.OT_RULE] = "connector";           // XOR / AND / OR — refined b
 KIND[Constants.OT_ORG_UNIT] = "lane";
 KIND[Constants.OT_POS] = "lane";
 KIND[Constants.OT_PERS_TYPE] = "lane";           // role
+
+// Information carriers, clusters, technical terms and application system
+// types: not control flow; exported under "data", drawn only with --notes.
+var DATA = {};
+DATA[Constants.OT_INFO_CARR] = "document";
+DATA[Constants.OT_CLST] = "information";
+DATA[Constants.OT_TECH_TRM] = "information";
+DATA[Constants.OT_APPL_SYS_TYPE] = "system";
 KIND[Constants.OT_FUNC] = "function";
 
 // Process interface: a function occurrence whose symbol is the interface symbol.
@@ -100,7 +110,26 @@ function exportModel(model) {
     if (laneOf[nodes[n].id]) nodes[n].lane = laneOf[nodes[n].id];
   }
 
-  return {
+  // pass 3: data. An information carrier, cluster, technical term or
+  // application system type connected to a function occurrence, either
+  // way round; the connection type gives the role when it is input/output.
+  var data = [];
+  for (var d = 0; d < occs.length; d++) {
+    var dOcc = occs[d], dKind = DATA[dOcc.ObjDef().TypeNum()];
+    if (!dKind) continue;
+    var cxns = dOcc.OutEdges(Constants.EDGES_ALL).concat(dOcc.InEdges(Constants.EDGES_ALL));
+    for (var c = 0; c < cxns.length; c++) {
+      var other = cxns[c].TargetObjOcc() === dOcc ? cxns[c].SourceObjOcc() : cxns[c].TargetObjOcc();
+      if (KIND[other.ObjDef().TypeNum()] !== "function") continue;
+      var item = { id: occId[dOcc], kind: dKind, name: dOcc.ObjDef().Name(-1), node: occId[other] };
+      var ct = cxns[c].Cxn().TypeNum();
+      if (ct == Constants.CT_IS_INP_FOR) item.role = "input";
+      else if (ct == Constants.CT_HAS_OUT) item.role = "output";
+      data.push(item);
+    }
+  }
+
+  var doc = {
     version: 1,
     process: {
       id: attr(model, Constants.AT_ID) || model.GUID(),
@@ -109,6 +138,8 @@ function exportModel(model) {
     },
     lanes: lanes, nodes: nodes, edges: edges
   };
+  if (data.length) doc.data = data;
+  return doc;
 }
 
 function main() {

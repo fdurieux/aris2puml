@@ -22,7 +22,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from aris2puml.model import Edge, Lane, Node, Note, Process
+from aris2puml.model import Data, Edge, Lane, Node, Note, Process
 
 
 class ReadError(ValueError):
@@ -50,6 +50,16 @@ def _one(doc: dict, source: str) -> Process:
                 for n in doc.get("nodes", [])
             ],
             edges=[Edge(str(e["from"]), str(e["to"])) for e in doc.get("edges", [])],
+            data=[
+                Data(
+                    id=str(d["id"]),
+                    kind=str(d["kind"]),
+                    name=" ".join(str(d.get("name", "")).split()),
+                    node=str(d["node"]),
+                    role=None if d.get("role") is None else str(d["role"]),
+                )
+                for d in doc.get("data", [])
+            ],
         )
     except (KeyError, TypeError) as exc:
         raise ReadError(f"{source}: malformed document ({exc})") from exc
