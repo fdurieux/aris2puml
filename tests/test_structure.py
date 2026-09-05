@@ -80,9 +80,10 @@ def test_implicit_merge_on_a_function_is_accepted():
         ([("e0", "event", "S"), ("x", "xor"), ("a", "function", "A"), ("b", "function", "B"),
           ("j", "and"), ("ee", "event", "E")],
          ["e0>x", "x>a", "x>b", "a>j", "b>j", "j>ee"], "split x (xor) joins at j (and)"),
-        # loop closing from a function with no XOR split to leave from
-        ([("e0", "event", "S"), ("j", "xor"), ("f", "function", "F")],
-         ["e0>j", "j>f", "f>j"],
+        # loop closing from an AND split, with no XOR split to leave from
+        ([("e0", "event", "S"), ("j", "xor"), ("f", "function", "F"), ("a", "and"),
+          ("ee", "event", "E")],
+         ["e0>j", "j>f", "f>a", "a>j", "a>ee"],
          "return path must run from an XOR split through exactly one function"),
         # a function with two successors (a split without a connector)
         ([("e0", "event", "S"), ("f", "function", "F"), ("a", "function", "A"), ("b", "function", "B")],
@@ -101,3 +102,32 @@ def test_unstructured_shapes_are_refused_naming_the_connector(nodes, edges, frag
     with pytest.raises(StructureError) as exc:
         structure(proc)
     assert fragment in str(exc.value)
+
+
+# --- a cycle with no way out ---------------------------------------------------
+
+def test_a_self_looping_connector_is_refused_not_spun_on():
+    """A connector whose only successor is itself never reaches an end. The
+    post-dominator walk used to chase it forever; it is a refusal, with the
+    node named. Two starts, because the walk that hung is the entry region's."""
+    proc = build(
+        [("e0", "event", "Truck arrived"), ("x", "xor"), ("e1", "event", "Order exists"),
+         ("j", "xor"), ("e9", "event", "Customer arrived"), ("f9", "function", "Greet customer")],
+        ["e0>x", "x>e1", "e1>j", "j>j", "e9>f9"],
+    )
+    with pytest.raises(StructureError, match=r"never reach an end .*: e0, x, e1, j$"):
+        structure(proc)
+
+
+def test_a_ring_of_connectors_with_no_exit_is_refused():
+    """Three XORs in a ring, entered from a split whose other branch ends:
+    nothing inside the ring ever reaches an end."""
+    proc = build(
+        [("e0", "event", "Purchase decided"), ("f1", "function", "Search for item"), ("s", "xor"),
+         ("e2", "event", "Item found"), ("f2", "function", "Add to cart"), ("ee", "event", "Cart filled"),
+         ("e3", "event", "Not found"), ("a", "xor"), ("f3", "function", "Search again"),
+         ("b", "xor"), ("c", "xor")],
+        ["e0>f1", "f1>s", "s>e2", "e2>f2", "f2>ee", "s>e3", "e3>a", "a>f3", "f3>b", "b>c", "c>a"],
+    )
+    with pytest.raises(StructureError, match="never reach an end"):
+        structure(proc)

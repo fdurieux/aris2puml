@@ -34,6 +34,7 @@ BUCKETS = (
     ("without passing through its split", "unstructured join"),
     ("joins at", "split/join kind mismatch"),
     ("does not reach join", "branch does not reach the join"),
+    ("never reach an end", "no way out: a cycle that never reaches an end event"),
     ("reached twice", "unstructured cycle or jump"),
     ("unreachable nodes", "unreachable nodes"),
 )

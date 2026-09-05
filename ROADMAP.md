@@ -114,6 +114,18 @@ Two rules that follow from the pin to pumllint:
   outputs are named from the process *name*, so two processes sharing a
   name overwrite one file — the sidecar shows both records pointing at it.
   The 0.3.0 criterion, "≥ 90 % converts, measured by A3", is now measurable.
+  *2026-09-05: the first corpus-wide run exposed a hang. Seven BPMAI
+  models — all tiny — contain a cycle that never reaches an end event (a
+  connector whose only successor is itself, or a ring of connectors
+  nothing leaves); the post-dominator fixed point degenerates on such
+  nodes, its immediate-post-dominator links form a cycle instead of a
+  tree, and the entry region's walk up that tree never ended. Fixed as a
+  refusal, not a repair: a node that never reaches a sink is reported by
+  id, the mirror of the "unreachable nodes" check at the other end. None
+  of the seventeen models with the shape had converted, so no diagram
+  changes. The BPMAI census now completes — **46.0 %** of 4332 convert
+  after A2 and B1, from 32.0 % before — and `--report` over the whole
+  collection agrees with it to the process.*
 - [ ] **A4. PyPI release 0.2.0** once A1 has one real fixture. Until then
   the README says "install from git".
 

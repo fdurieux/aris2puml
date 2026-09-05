@@ -166,6 +166,19 @@ def _post_dominators(proc: Process) -> tuple[dict[str, str | None], dict[str, se
     return ipdom, pdom
 
 
+def _never_reach_a_sink(proc: Process) -> list[str]:
+    """Node ids, in model order, from which no sink (a node with no
+    successor) can be reached."""
+    can = {n.id for n in proc.nodes if not proc.successors(n.id)}
+    stack = list(can)
+    while stack:
+        for u in proc.predecessors(stack.pop()):
+            if u not in can:
+                can.add(u)
+                stack.append(u)
+    return [n.id for n in proc.nodes if n.id not in can]
+
+
 def _back_edges(proc: Process, starts: list[str]) -> list[tuple[str, str]]:
     colour: dict[str, int] = {}
     back: list[tuple[str, str]] = []
@@ -195,6 +208,18 @@ class _Walker:
         self.starts = [n.id for n in proc.nodes if not proc.predecessors(n.id)]
         if not self.starts:
             raise StructureError("no start node: every node has a predecessor")
+        # The mirror of structure()'s closing "unreachable nodes" check, at
+        # the other end: a node that never reaches a sink sits in a cycle
+        # with no way out. The post-dominator fixed point degenerates on such
+        # nodes (their sets never shrink from "everything"), so their ipdom
+        # links form a cycle rather than a tree and _region's walk up that
+        # tree never ends. With every node reaching the exit the relation is
+        # the true one and the walk terminates, so this guard is the only one.
+        stuck = _never_reach_a_sink(proc)
+        if stuck:
+            raise StructureError(
+                "nodes that never reach an end (the flow loops back on itself): "
+                + ", ".join(stuck))
         self.ipdom, self.pdom = _post_dominators(proc)
         # loop tails: split S -> (header, back-event-or-None)
         self.loops: dict[str, tuple[str, str | None]] = {}
