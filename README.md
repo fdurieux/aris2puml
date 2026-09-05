@@ -21,6 +21,7 @@ aris2puml order_to_cash.json -o -            # print the diagram
 aris2puml --from epml SAPModels.epml -o out/  # every EPC in an EPML document
 aris2puml corpus/*.json -o out/ --report sidecar.json  # + what each process dropped, approximated or refused
 aris2puml corpus/*.json -o out/ --strict                # refuse what would be approximated or dropped
+aris2puml corpus/*.json -o out/ --diagnose              # + <name>.refused.puml for each refusal: where, drawn
 ```
 
 Each process becomes `<process-name-slug>.puml`; when two processes in one
@@ -133,6 +134,19 @@ offending node named:
 
 Structure the EPC first. The converter will not invent structure the
 model does not have.
+
+## Where it refused: `--diagnose`
+
+A refusal names a connector id on stderr. `--diagnose` also draws it: for
+each process the structuring pass refuses, `<name>.refused.puml` is written
+beside the outputs — the EPC as the graph it is, events as ellipses,
+functions as boxes, connectors as labelled circles, the node(s) the refusal
+names in **red** and the reason as a note on the first of them. It is not
+an activity diagram and is not meant to lint: the refusal *is* the finding
+that the graph has no block structure, so any activity diagram of it would
+be invented structure. It carries `!pragma layout smetana`, so it renders
+wherever the activity diagrams do, with or without Graphviz. With
+`--report`, the refused record carries the drawing's path as `diagnostic`.
 
 ## What was lost: the fidelity sidecar
 

@@ -47,6 +47,18 @@ def test_read_and_structure_errors_exit_2(tmp_path):
     assert not (tmp_path / "u.puml").exists()
 
 
+UNSTRUCTURED = {"process": {"id": "U", "name": "Unstructured"},
+                "nodes": [{"id": "e0", "kind": "event", "name": "S"}, {"id": "x1", "kind": "xor"},
+                          {"id": "p", "kind": "event", "name": "P"}, {"id": "q", "kind": "event", "name": "Q"},
+                          {"id": "x2", "kind": "xor"}, {"id": "r", "kind": "event", "name": "R"},
+                          {"id": "t", "kind": "event", "name": "T"}, {"id": "j1", "kind": "xor"},
+                          {"id": "j2", "kind": "xor"}, {"id": "fa", "kind": "function", "name": "A"},
+                          {"id": "fb", "kind": "function", "name": "B"}, {"id": "ee", "kind": "event", "name": "E"}],
+                "edges": [{"from": a, "to": b} for a, b in
+                          [("e0", "x1"), ("x1", "p"), ("x1", "q"), ("p", "x2"), ("x2", "r"), ("x2", "t"),
+                           ("r", "j1"), ("q", "j1"), ("t", "j2"), ("j1", "fa"), ("fa", "j2"), ("j2", "fb"),
+                           ("fb", "ee")]]}
+
 OR_PROCESS = {"process": {"id": "O", "name": "With an OR"},
               "nodes": [{"id": "e0", "kind": "event", "name": "Start"}, {"id": "o1", "kind": "or"},
                         {"id": "f1", "kind": "function", "name": "Do a"},
@@ -114,6 +126,37 @@ def test_a_bad_later_input_aborts_before_anything_is_written(tmp_path):
     rc, _, err = _run([str(FIXTURES / "order_to_cash.json"), str(bad), "-o", str(tmp_path / "out")])
     assert rc == 2 and "bad.json" in err
     assert not (tmp_path / "out").exists()
+
+
+def test_diagnose_draws_the_refused_process_and_points_at_it(tmp_path):
+    src = tmp_path / "u.json"
+    src.write_text(json.dumps(UNSTRUCTURED), encoding="utf-8")
+    rc, out, err = _run([str(src), "-o", str(tmp_path / "out")])
+    assert rc == 2 and not (tmp_path / "out").exists()          # without the flag: nothing extra
+    rc, out, err = _run([str(src), "-o", str(tmp_path / "out"), "--diagnose"])
+    drawing = tmp_path / "out" / "unstructured.refused.puml"
+    assert rc == 2 and out == "" and drawing.exists()
+    assert err.endswith(f"(see {drawing.as_posix()})\n")
+    text = drawing.read_text(encoding="utf-8")
+    assert text.startswith("@startuml unstructured-refused\n") and "#red" in text
+    assert sorted(p.name for p in (tmp_path / "out").iterdir()) == ["unstructured.refused.puml"]
+
+
+def test_diagnose_with_a_report_records_the_drawing(tmp_path):
+    src = tmp_path / "u.json"
+    src.write_text(json.dumps(UNSTRUCTURED), encoding="utf-8")
+    side = tmp_path / "s.json"
+    rc, _, _ = _run([str(src), str(FIXTURES / "order_to_cash.json"), "-o", str(tmp_path / "out"),
+                     "--diagnose", "--report", str(side)])
+    doc = json.loads(side.read_text(encoding="utf-8"))
+    refused, converted = doc["processes"]
+    assert rc == 2 and refused["diagnostic"].endswith("/unstructured.refused.puml")
+    assert "diagnostic" not in converted and "\\" not in refused["diagnostic"]
+
+
+def test_diagnose_needs_files():
+    rc, _, err = _run([str(FIXTURES / "order_to_cash.json"), "-o", "-", "--diagnose"])
+    assert rc == 2 and "--diagnose needs files" in err
 
 
 def test_check_needs_files():
