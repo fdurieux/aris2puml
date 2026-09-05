@@ -47,6 +47,40 @@ def test_read_and_structure_errors_exit_2(tmp_path):
     assert not (tmp_path / "u.puml").exists()
 
 
+OR_PROCESS = {"process": {"id": "O", "name": "With an OR"},
+              "nodes": [{"id": "e0", "kind": "event", "name": "Start"}, {"id": "o1", "kind": "or"},
+                        {"id": "f1", "kind": "function", "name": "Do a"},
+                        {"id": "f2", "kind": "function", "name": "Do b"}, {"id": "o2", "kind": "or"},
+                        {"id": "f3", "kind": "function", "name": "Finish"},
+                        {"id": "ee", "kind": "event", "name": "Done"}],
+              "edges": [{"from": "e0", "to": "o1"}, {"from": "o1", "to": "f1"}, {"from": "o1", "to": "f2"},
+                        {"from": "f1", "to": "o2"}, {"from": "f2", "to": "o2"}, {"from": "o2", "to": "f3"},
+                        {"from": "f3", "to": "ee"}]}
+
+
+def test_strict_turns_the_or_warning_into_a_refusal(tmp_path):
+    src = tmp_path / "or.json"
+    src.write_text(json.dumps(OR_PROCESS), encoding="utf-8")
+    rc, out, err = _run([str(src), "-o", str(tmp_path / "out")])
+    assert rc == 0 and "warning: " in err and "emitted as fork" in err
+    rc, out, err = _run([str(src), "-o", str(tmp_path / "strict"), "--strict"])
+    assert rc == 2 and out == ""
+    assert err == "aris2puml: or.json [O]: o1: OR connector has no activity-diagram equivalent (refused under --strict)\n".replace("or.json", src.as_posix())
+    assert not (tmp_path / "strict").exists()
+
+
+def test_strict_with_a_report_records_the_refusal_and_its_reason(tmp_path):
+    src = tmp_path / "or.json"
+    src.write_text(json.dumps(OR_PROCESS), encoding="utf-8")
+    side = tmp_path / "s.json"
+    rc, _, _ = _run([str(src), str(FIXTURES / "order_to_cash.json"), "-o", str(tmp_path / "out"),
+                     "--strict", "--report", str(side)])
+    doc = json.loads(side.read_text(encoding="utf-8"))
+    assert rc == 2 and doc["summary"]["converted"] == 1 and doc["summary"]["refused"] == 1
+    refused, = [r for r in doc["processes"] if r["status"] == "refused"]
+    assert refused["id"] == "O" and refused["reason"].endswith("(refused under --strict)")
+
+
 def test_check_needs_files():
     rc, _, err = _run([str(FIXTURES / "order_to_cash.json"), "-o", "-", "--check"])
     assert rc == 2 and "needs files" in err

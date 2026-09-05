@@ -50,6 +50,9 @@ DROPPED = ("unsupported-element", "unused-lane", "return-path-events", "return-p
 # Reader drops are the contract working as documented, not a per-run surprise:
 # they go into the sidecar and stay off stderr.
 REPORT_ONLY = ("unsupported-element", "unused-lane")
+# What --strict refuses: every loss the structuring pass records. Reader
+# drops are the contract, not a fidelity choice, so they stay out.
+STRICT = tuple(c for c in APPROXIMATED + DROPPED if c not in REPORT_ONLY)
 
 
 @dataclass

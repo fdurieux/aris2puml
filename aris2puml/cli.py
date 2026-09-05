@@ -33,6 +33,10 @@ def _parser() -> argparse.ArgumentParser:
                     help="run pumllint on the written diagrams (needs pumllint installed)")
     ap.add_argument("-c", "--config", help="pumllint config for --check")
     ap.add_argument("--fail-on", help="pumllint --fail-on for --check")
+    ap.add_argument("--strict", action="store_true",
+                    help="refuse what would otherwise be approximated or dropped, instead of "
+                         "warning: OR connectors, OR-joined start events, mid-flow triggers, "
+                         "and a `backward` return path that loses events or an org unit")
     ap.add_argument("--report", metavar="PATH",
                     help="write a fidelity sidecar (JSON) here: what each process dropped, "
                          "approximated or refused; a refusal is recorded and the run goes on")
@@ -40,7 +44,8 @@ def _parser() -> argparse.ArgumentParser:
     return ap
 
 
-def convert(inputs: list[str], fmt: str, out: str, collect: bool = False) -> Report:
+def convert(inputs: list[str], fmt: str, out: str, collect: bool = False,
+            strict: bool = False) -> Report:
     """Convert every process in ``inputs`` and account for each one.
 
     Raises ReadError / StructureError with the offending file and node —
@@ -62,7 +67,7 @@ def convert(inputs: list[str], fmt: str, out: str, collect: bool = False) -> Rep
             continue
         for proc in procs:
             try:
-                s = structure(proc)
+                s = structure(proc, strict)
             except StructureError as exc:
                 if not collect:
                     raise StructureError(f"{path.as_posix()} [{proc.id}]: {exc}") from exc
@@ -102,7 +107,8 @@ def main(argv: list[str] | None = None) -> int:
         print("aris2puml: --check needs files, not '-'", file=sys.stderr)
         return 2
     try:
-        report = convert(args.inputs, args.fmt, args.out, collect=bool(args.report))
+        report = convert(args.inputs, args.fmt, args.out, collect=bool(args.report),
+                         strict=args.strict)
     except (ReadError, StructureError) as exc:
         print(f"aris2puml: {exc}", file=sys.stderr)
         return 2

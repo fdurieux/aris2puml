@@ -32,7 +32,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import NamedTuple
 
-from aris2puml.model import Node, Note, Process
+from aris2puml.model import STRICT, Node, Note, Process
 
 CONNECTORS = ("xor", "and", "or")
 EXIT = "$exit"
@@ -202,8 +202,9 @@ def _back_edges(proc: Process, starts: list[str]) -> list[tuple[str, str]]:
 # -- the walk ----------------------------------------------------------------
 
 class _Walker:
-    def __init__(self, proc: Process):
+    def __init__(self, proc: Process, strict: bool = False):
         self.p = proc
+        self.strict = strict
         self.notes: list[Note] = []
         self.starts = [n.id for n in proc.nodes if not proc.predecessors(n.id)]
         if not self.starts:
@@ -455,9 +456,17 @@ class _Walker:
             for u in self._upstream(q) | {q}:
                 self._mark(u)
         label = JOINWORD[n.kind].join(self._tree_label(q) for q in entry)
-        self.notes.append(Note("mid-flow-trigger", cur,
-                               f"{cur}: external trigger joins mid-process ({n.kind}): {label}"))
+        self._lose(Note("mid-flow-trigger", cur,
+                        f"{cur}: external trigger joins mid-process ({n.kind}): {label}"))
         return Trigger(n, label)
+
+    def _lose(self, note: Note) -> None:
+        """Record a loss — or, under --strict, refuse on it. A note's text
+        reads `<what is lost>; <what the diagram does instead>`; strict
+        quotes the first half, since nothing is done instead."""
+        if self.strict and note.code in STRICT:
+            raise StructureError(note.text.split("; ")[0] + " (refused under --strict)")
+        self.notes.append(note)
 
     def _nearest(self, cands: set[str]) -> str | None:
         for c in cands:
@@ -532,8 +541,8 @@ class _Walker:
         if kind == "xor":
             return Decision(virtual, "Trigger?", branches), labels
         if kind == "or":
-            self.notes.append(Note("or-start-events", "start",
-                                   "start: OR-joined start events have no activity-diagram equivalent; emitted as fork"))
+            self._lose(Note("or-start-events", "start",
+                            "start: OR-joined start events have no activity-diagram equivalent; emitted as fork"))
         return Parallel(virtual, bodies), labels
 
     def entry(self) -> tuple[list, str | None]:
@@ -585,7 +594,7 @@ class _Walker:
                     raise StructureError(f"branch of {n.id} via {s} does not reach join {stop}")
                 bodies.append(body)
             if n.kind == "or":
-                self.notes.append(Note("or-connector", n.id,
+                self._lose(Note("or-connector", n.id,
                     f"{n.id}: OR connector has no activity-diagram equivalent; emitted as fork"))
             block = Parallel(n, bodies)
         if stop is None:
@@ -671,11 +680,11 @@ class _Walker:
                 self._mark(e)
             if tail.dropped:
                 names = ", ".join(self.p.node(e).name for e in tail.dropped)
-                self.notes.append(Note("return-path-events", split,
+                self._lose(Note("return-path-events", split,
                     f"{split}: `backward` carries one action and no arrow, so the return "
                     f"path's event(s) are dropped: {names}"))
             if backward.lane is not None:
-                self.notes.append(Note("return-path-lane", tail.backward,
+                self._lose(Note("return-path-lane", tail.backward,
                     f"{tail.backward}: a `backward` action takes no swimlane, so its "
                     f"org unit is dropped"))
         label, start, ends = self._branch_start(exits[0], "xor")
@@ -687,8 +696,10 @@ class _Walker:
         return loop
 
 
-def structure(proc: Process) -> Structured:
-    w = _Walker(proc)
+def structure(proc: Process, strict: bool = False) -> Structured:
+    """Block-structure ``proc``. Under ``strict`` every approximation or drop
+    the pass would otherwise record (and warn about) is a refusal instead."""
+    w = _Walker(proc, strict)
     blocks, reached = w.entry()
     if reached is not None:
         raise StructureError(f"walk stopped on {reached} without consuming it")

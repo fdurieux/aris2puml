@@ -172,10 +172,20 @@ Two rules that follow from the pin to pumllint:
   *The SAP census moves 445 → 447 of 604. Neither mortgage model converts
   even now: both refuse on an AND split that joins at an OR, which is a
   real defect and not a loop shape.*
-- [ ] **B2. `--strict`** — refuse OR connectors and any other
-  approximation instead of warning, for teams gating on conversion
+- [x] **B2. `--strict`** *(2026-09-05)* — refuse OR connectors and any
+  other approximation instead of warning, for teams gating on conversion
   fidelity. Small. *2026-09-04: folded mid-flow triggers (A2) are the
   second approximation this must refuse.*
+  *Shipped on top of A3's notes: strict is a set membership, not a string
+  match. Scope, chosen by the maintainer: everything the structuring pass
+  records — the three approximations (OR connector, OR-joined start
+  events, mid-flow trigger) and the two `backward` drops (return-path
+  events, return-path org unit). Reader drops stay out: they are the
+  contract, and B3 is their answer. Re-litigate the scope when B3 gives
+  information objects a place in the diagram. Over the nine-model corpus
+  `--strict --report` reads 3 of 9 (the three SAP OR approximations become
+  refusals); over BPMAI 1 756 of 4 332 (40.5 %) convert faithfully, from
+  46.0 % with approximations allowed.*
 - [ ] **B3. `--notes`** — information objects, documents and IT systems as
   `note right` on their function; opt-in because pumllint's GEN008 counts
   notes. Extends the JSON contract additively (a `"data"` array; version
