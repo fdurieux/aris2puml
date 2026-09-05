@@ -81,6 +81,41 @@ def test_strict_with_a_report_records_the_refusal_and_its_reason(tmp_path):
     assert refused["id"] == "O" and refused["reason"].endswith("(refused under --strict)")
 
 
+def _named(pid, name):
+    return {"process": {"id": pid, "name": name},
+            "nodes": [{"id": "e", "kind": "event", "name": "S"}, {"id": "f", "kind": "function", "name": "F"},
+                      {"id": "d", "kind": "event", "name": "D"}],
+            "edges": [{"from": "e", "to": "f"}, {"from": "f", "to": "d"}]}
+
+
+def test_two_processes_sharing_a_name_each_get_their_id_in_the_file_name(tmp_path):
+    """Neither keeps the bare name, so which one owns it never depends on
+    input order; the diagram's own @startuml name is the file stem."""
+    a = tmp_path / "a.json"; a.write_text(json.dumps(_named("PROC-1", "New process")), encoding="utf-8")
+    b = tmp_path / "b.json"; b.write_text(json.dumps(_named("PROC-2", "New process")), encoding="utf-8")
+    c = tmp_path / "c.json"; c.write_text(json.dumps(_named("PROC-3", "Old process")), encoding="utf-8")
+    side = tmp_path / "s.json"
+    rc, out, err = _run([str(a), str(b), str(c), "-o", str(tmp_path / "out"), "--report", str(side)])
+    assert rc == 0 and err == ""
+    names = sorted(p.name for p in (tmp_path / "out").iterdir())
+    assert names == ["new-process-proc-1.puml", "new-process-proc-2.puml", "old-process.puml"]
+    for n in names:
+        assert (tmp_path / "out" / n).read_text(encoding="utf-8").startswith(f"@startuml {n[:-5]}\n")
+    outputs = [r["output"] for r in json.loads(side.read_text(encoding="utf-8"))["processes"]]
+    assert len(set(outputs)) == 3
+
+
+def test_a_bad_later_input_aborts_before_anything_is_written(tmp_path):
+    """Every input is read before the first file is written (the output
+    names need the whole run), so a document the reader refuses leaves no
+    partial output behind."""
+    bad = tmp_path / "bad.json"
+    bad.write_text("{", encoding="utf-8")
+    rc, _, err = _run([str(FIXTURES / "order_to_cash.json"), str(bad), "-o", str(tmp_path / "out")])
+    assert rc == 2 and "bad.json" in err
+    assert not (tmp_path / "out").exists()
+
+
 def test_check_needs_files():
     rc, _, err = _run([str(FIXTURES / "order_to_cash.json"), "-o", "-", "--check"])
     assert rc == 2 and "needs files" in err

@@ -9,11 +9,12 @@ from __future__ import annotations
 
 import argparse
 import sys
+from collections import Counter
 from pathlib import Path
 
 from aris2puml import __version__
 from aris2puml.emit import emit, slug
-from aris2puml.model import REPORT_ONLY, Note
+from aris2puml.model import REPORT_ONLY, Note, Process
 from aris2puml.readers import READERS
 from aris2puml.readers.json_ import ReadError
 from aris2puml.report import Report
@@ -44,26 +45,42 @@ def _parser() -> argparse.ArgumentParser:
     return ap
 
 
+def _stem(proc: Process, stems: Counter[str]) -> str:
+    """The output name: the process name's slug — and, when another process
+    in the run shares that name, the process id as well, for every holder,
+    so that no two diagrams land in one file and none depends on input
+    order for keeping the bare name."""
+    stem = slug(proc.name)
+    return stem if stems[stem] == 1 else f"{stem}-{slug(proc.id)}"
+
+
 def convert(inputs: list[str], fmt: str, out: str, collect: bool = False,
             strict: bool = False) -> Report:
     """Convert every process in ``inputs`` and account for each one.
 
     Raises ReadError / StructureError with the offending file and node —
     unless ``collect`` is set, in which case a refusal is recorded on the
-    report and the run continues to the next process.
+    report and the run continues to the next process. Every input is read
+    before anything is written, so the output names can be settled first.
     """
     read = READERS[fmt]
     report = Report()
+    docs: list[tuple[Path, list[Process] | ReadError, dict[str, list[Note]]]] = []
     for inp in inputs:
         path = Path(inp)
         report.inputs.append(path.as_posix())
         dropped: dict[str, list[Note]] = {}
         try:
-            procs = read(inp, dropped)
+            docs.append((path, read(inp, dropped), dropped))
         except ReadError as exc:
             if not collect:
                 raise
-            report.refused(path, str(exc))
+            docs.append((path, exc, dropped))
+    stems = Counter(slug(proc.name) for _, procs, _ in docs
+                    if not isinstance(procs, ReadError) for proc in procs)
+    for path, procs, dropped in docs:
+        if isinstance(procs, ReadError):
+            report.refused(path, str(procs))
             continue
         for proc in procs:
             try:
@@ -73,12 +90,13 @@ def convert(inputs: list[str], fmt: str, out: str, collect: bool = False,
                     raise StructureError(f"{path.as_posix()} [{proc.id}]: {exc}") from exc
                 report.refused(path, str(exc), proc.id, proc.name)
                 continue
-            text = emit(proc, s)
+            stem = _stem(proc, stems)
+            text = emit(proc, s, stem)
             target: Path | None = None
             if out == "-":
                 sys.stdout.write(text)
             else:
-                target = Path(out) / f"{slug(proc.name)}.puml"
+                target = Path(out) / f"{stem}.puml"
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(text, encoding="utf-8", newline="\n")
             report.converted(path, proc.id, proc.name, target,

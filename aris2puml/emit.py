@@ -167,9 +167,9 @@ class _Emitter:
         if end is not None:
             self.blocks([end], depth)
 
-    def render(self, s: Structured) -> str:
+    def render(self, s: Structured, name: str | None = None) -> str:
         p = self.p
-        self.out(0, f"@startuml {slug(p.name)}")
+        self.out(0, f"@startuml {name or slug(p.name)}")
         self.out(0, f"title {p.name}")
         parts = ([f"owner: {p.owner}"] if p.owner else []) + [f"ARIS process {p.id}"]
         self.out(0, "footer " + " — ".join(parts))
@@ -183,5 +183,7 @@ class _Emitter:
         return "\n".join(self.lines) + "\n"
 
 
-def emit(proc: Process, structured: Structured) -> str:
-    return _Emitter(proc).render(structured)
+def emit(proc: Process, structured: Structured, name: str | None = None) -> str:
+    """The diagram, named ``name`` (the CLI's file stem) or the process
+    name's slug."""
+    return _Emitter(proc).render(structured, name)
