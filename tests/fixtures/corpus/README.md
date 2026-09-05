@@ -161,9 +161,26 @@ day). After it, re-run over the SAP set with the same command:*
 | A2 residual: no entry at all (every start is a mid-flow trigger) | 0.5 % |
 | unstructured cycle, connector-less splits, entry branches missing their join | 1.8 % |
 
-*The BPMAI column is not re-run: its 388 MB archive is not cached here.
-Its A2 share was 23.5 %, most of it the two-entry shape the four kept
-models have, so the same order of gain is expected but not measured.*
+*2026-09-05, after A2, B1's `while` and `backward`, and the no-way-out
+guard (below), over both collections with the same command — the first
+complete BPMAI run, since until that guard seven of its models never
+finished structuring:*
+
+| after A2 + B1 | SAP reference model (604) | BPMAI (4332) |
+|---|---|---|
+| converts | **74.0 %** (447) | **46.0 %** (1994) |
+| unstructured join | 14.2 % | 19.6 % |
+| loop shapes (B1 residual: header not an XOR, or a return path with no function or several) | 4.3 % | 18.6 % |
+| split/join kind mismatch | 3.1 % | 2.8 % |
+| reader refused (unnamed or malformed element) | 2.5 % | 5.6 % |
+| a split without a connector (a function or event with several successors) | — | 1.6 % |
+| no way out: a cycle that never reaches an end event | — | 0.4 % |
+| smaller refusals | 1.8 % | 5.3 % |
+
+The no-way-out row is a shape the structurer used to spin on rather
+than refuse: a connector whose only successor is itself, or a ring of
+connectors nothing leaves. Seventeen BPMAI models have one; seven of
+those hung the walk. They are refused now, naming the nodes.
 
 Two collections, two very different populations — the SAP models are
 generated overview diagrams with many entry points, the BPMAI models are
