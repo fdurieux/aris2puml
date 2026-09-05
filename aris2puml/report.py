@@ -18,12 +18,14 @@ Shape (version 1)::
          "approximated": [{"code": "or-connector", "node": "o1", "detail": "…"}],
          "dropped": []},
         {"input": "corpus/b.json", "id": "EPML-459", "name": "1Tr_gfmu",
-         "status": "refused", "reason": "join 31 reached without …"}
+         "status": "refused", "reason": "join 31 reached without …",
+         "diagnostic": "out/1tr-gfmu.refused.puml"}
       ]
     }
 
 A document the reader refuses yields one record with ``"id": null``: both
 readers are all-or-nothing per document, so the document is the unit.
+``diagnostic`` is present when ``--diagnose`` drew the refused process.
 Every path is POSIX, on every platform, like the CLI's own output.
 """
 
@@ -48,6 +50,7 @@ class Record:
     output: str | None = None           # POSIX path of the .puml, when one was written
     notes: list[Note] = field(default_factory=list)
     reason: str | None = None           # the refusal, verbatim
+    diagnostic: str | None = None       # POSIX path of the --diagnose drawing, when one was written
 
     @property
     def approximated(self) -> list[Note]:
@@ -65,6 +68,8 @@ class Record:
             d["dropped"] = [_note(n) for n in self.dropped]
         else:
             d["reason"] = self.reason
+            if self.diagnostic:
+                d["diagnostic"] = self.diagnostic
         return d
 
 
@@ -86,8 +91,9 @@ class Report:
         return r
 
     def refused(self, inp: Path, reason: str, pid: str | None = None,
-                name: str | None = None) -> Record:
-        r = Record(inp.as_posix(), pid, name, "refused", reason=reason)
+                name: str | None = None, diagnostic: Path | None = None) -> Record:
+        r = Record(inp.as_posix(), pid, name, "refused", reason=reason,
+                   diagnostic=diagnostic.as_posix() if diagnostic else None)
         self.records.append(r)
         return r
 

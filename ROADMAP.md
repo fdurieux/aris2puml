@@ -203,10 +203,23 @@ Two rules that follow from the pin to pumllint:
   converted processes and their interface references, so pumllint lints
   them as one batch (XD004 across processes) and a missing referenced
   process is reported. Medium.
-- [ ] **B5. Structure diagnostics** — on `StructureError`, write the
-  partial diagram with the offending connector as a `#red` note so the
-  modeller sees *where* to restructure, instead of an id on stderr.
+- [x] **B5. Structure diagnostics** *(2026-09-05)* — on `StructureError`,
+  write the partial diagram with the offending connector as a `#red` note
+  so the modeller sees *where* to restructure, instead of an id on stderr.
   Medium, UX-only; do after B1 shows which errors real users hit.
+  *Shipped as `--diagnose`, opt-in, and not as a partial activity diagram:
+  there is no such thing — the refusal is the finding that the graph has
+  no block structure, and the walk raises from inside a recursion whose
+  half-built blocks live in stack frames, so anything drawn as an activity
+  diagram would be invented structure. What can be drawn is the EPC
+  itself: `<name>.refused.puml` is the process as a graph in PlantUML's
+  component dialect, the node(s) the refusal names in red, the reason as a
+  note, `!pragma layout smetana` pinned so it renders without Graphviz.
+  `StructureError` now carries the ids it names, so nothing is parsed out
+  of prose. The gate was met by the census: unstructured join is the first
+  refusal in both collections (14.2 % of SAP, 19.6 % of BPMAI), and the
+  drawing of `mortgage-application.json` shows its join fed by outcomes of
+  two different XOR splits at a glance.*
 
 ## Arc C — Second front-end (P2, gated)
 

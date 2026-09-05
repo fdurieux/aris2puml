@@ -39,7 +39,12 @@ EXIT = "$exit"
 
 
 class StructureError(ValueError):
-    pass
+    """The EPC has no block structure here. ``nodes`` are the ids the
+    message names, for a diagnostic that marks them on the graph."""
+
+    def __init__(self, message: str, *nodes: str):
+        super().__init__(message)
+        self.nodes: tuple[str, ...] = tuple(dict.fromkeys(n for n in nodes if n))
 
 
 class _Tail(NamedTuple):
@@ -220,7 +225,7 @@ class _Walker:
         if stuck:
             raise StructureError(
                 "nodes that never reach an end (the flow loops back on itself): "
-                + ", ".join(stuck))
+                + ", ".join(stuck), *stuck)
         self.ipdom, self.pdom = _post_dominators(proc)
         # loop tails: split S -> (header, back-event-or-None)
         self.loops: dict[str, tuple[str, str | None]] = {}
@@ -233,7 +238,7 @@ class _Walker:
             if (proc.node(v).kind == "xor"
                     and len(proc.predecessors(v)) > 1 and len(proc.successors(v)) > 1):
                 if v in self.whiles:
-                    raise StructureError(f"loop header {v} closes two loops")
+                    raise StructureError(f"loop header {v} closes two loops", v, u, self.whiles[v])
                 self.whiles[v] = u
                 self.headers.add(v)
                 continue
@@ -252,14 +257,14 @@ class _Walker:
                 if walked is None:
                     raise StructureError(
                         f"back edge {u}->{v}: a loop's return path must run from an XOR "
-                        f"split through exactly one function"
+                        f"split through exactly one function", u, v
                     )
                 split, tail = walked[0], _Tail(v, *walked[1:])
             hn = proc.node(v)
             if hn.kind != "xor" or len(proc.predecessors(v)) < 2:
-                raise StructureError(f"back edge {u}->{v}: loop header {v} is not an XOR join")
+                raise StructureError(f"back edge {u}->{v}: loop header {v} is not an XOR join", v, u)
             if split in self.loops:
-                raise StructureError(f"split {split} closes two loops")
+                raise StructureError(f"split {split} closes two loops", split, v)
             self.loops[split] = tail
             self.headers.add(v)
         self.seen: set[str] = set()
@@ -268,7 +273,7 @@ class _Walker:
     def _single_succ(self, nid: str) -> str | None:
         s = self.p.successors(nid)
         if len(s) > 1:
-            raise StructureError(f"{nid}: {self.p.node(nid).kind} has {len(s)} successors")
+            raise StructureError(f"{nid}: {self.p.node(nid).kind} has {len(s)} successors", nid)
         return s[0] if s else None
 
     def _reaches(self, start: str, target: str, without: str) -> bool:
@@ -319,7 +324,7 @@ class _Walker:
 
     def _mark(self, nid: str) -> None:
         if nid in self.seen:
-            raise StructureError(f"{nid} is reached twice: unstructured cycle or jump")
+            raise StructureError(f"{nid} is reached twice: unstructured cycle or jump", nid)
         self.seen.add(nid)
 
     def walk(self, cur: str | None, stop: str | None) -> tuple[list, str | None]:
@@ -351,21 +356,21 @@ class _Walker:
                 preds = self.p.predecessors(cur)
                 if len(succs) > 1:
                     if cur in self.loops:
-                        raise StructureError(f"loop split {cur} reached outside its loop")
+                        raise StructureError(f"loop split {cur} reached outside its loop", cur)
                     split_blocks, cur = self._split(n, succs)
                     blocks.extend(split_blocks)
                 elif len(preds) > 1:
                     trigger = self._trigger(cur, n)
                     if trigger is None:
                         raise StructureError(
-                            f"join {cur} reached without passing through its split (unstructured)"
+                            f"join {cur} reached without passing through its split (unstructured)", cur
                         )
                     blocks.append(trigger)
                     cur = self._single_succ(cur)
                 else:
                     cur = self._single_succ(cur)
             else:  # pragma: no cover - model.validate() rejects unknown kinds
-                raise StructureError(f"{cur}: unknown kind {n.kind}")
+                raise StructureError(f"{cur}: unknown kind {n.kind}", cur)
         return blocks, cur
 
     # -- entries: start events ----------------------------------------------
@@ -465,7 +470,8 @@ class _Walker:
         reads `<what is lost>; <what the diagram does instead>`; strict
         quotes the first half, since nothing is done instead."""
         if self.strict and note.code in STRICT:
-            raise StructureError(note.text.split("; ")[0] + " (refused under --strict)")
+            raise StructureError(note.text.split("; ")[0] + " (refused under --strict)",
+                                 note.node if note.node != "start" else "")
         self.notes.append(note)
 
     def _nearest(self, cands: set[str]) -> str | None:
@@ -487,7 +493,7 @@ class _Walker:
     def _walk_to(self, start: str | None, stop: str | None, via: str) -> list:
         body, reached = self.walk(start, stop)
         if stop is not None and reached != stop:
-            raise StructureError(f"entry via {via} does not reach the entry join {stop}")
+            raise StructureError(f"entry via {via} does not reach the entry join {stop}", via, stop)
         return body
 
     def _region(self, starts: list[str], join: str) -> tuple[object, list[str]]:
@@ -520,7 +526,8 @@ class _Walker:
             inner = self._common_join(group)
             if inner in (join, EXIT):
                 raise StructureError(
-                    f"start events {', '.join(group)} share no join below {join}"
+                    f"start events {', '.join(group)} share no join below {join}",
+                    *group, join if join != EXIT else ""
                 )
             inner_kind = self.p.node(inner).kind if self._is_join(inner) else "xor"
             block, inner_labels = self._region(group, inner)
@@ -549,7 +556,8 @@ class _Walker:
         """Blocks for the whole process, from its start events."""
         real = [s for s in self.starts if not self._is_trigger(s)]
         if not real:
-            raise StructureError("every start event is a mid-process trigger: no entry into the flow")
+            raise StructureError("every start event is a mid-process trigger: no entry into the flow",
+                                 *self.starts)
         if len(real) == 1:
             return self.walk(real[0], None)
         join = self._common_join(real)
@@ -583,7 +591,8 @@ class _Walker:
                 else:
                     body, reached = self.walk(start, stop)
                     if stop is not None and reached != stop:
-                        raise StructureError(f"branch of {n.id} via {s} does not reach join {stop}")
+                        raise StructureError(f"branch of {n.id} via {s} does not reach join {stop}",
+                                             n.id, s, stop)
                 branches.append(Branch(label, body))
             block: object = Decision(n, self._condition(n, branches), branches)
         else:
@@ -591,7 +600,8 @@ class _Walker:
             for s in succs:
                 body, reached = self.walk(s, stop)
                 if stop is not None and reached != stop:
-                    raise StructureError(f"branch of {n.id} via {s} does not reach join {stop}")
+                    raise StructureError(f"branch of {n.id} via {s} does not reach join {stop}",
+                                         n.id, s, stop)
                 bodies.append(body)
             if n.kind == "or":
                 self._lose(Note("or-connector", n.id,
@@ -602,7 +612,7 @@ class _Walker:
         jn = self.p.node(join)
         if jn.kind in CONNECTORS and len(self.p.predecessors(join)) > 1:
             if jn.kind != n.kind:
-                raise StructureError(f"split {n.id} ({n.kind}) joins at {join} ({jn.kind})")
+                raise StructureError(f"split {n.id} ({n.kind}) joins at {join} ({jn.kind})", n.id, join)
             self._mark(join)
             blocks: list = [block]
             trigger = self._trigger(join, jn, from_branches=True)
@@ -629,21 +639,21 @@ class _Walker:
         succs = self.p.successors(header)
         if len(succs) != 2:
             raise StructureError(
-                f"loop header {header} must have exactly 2 outcomes, has {len(succs)}"
+                f"loop header {header} must have exactly 2 outcomes, has {len(succs)}", header
             )
         round_trip = [s for s in succs if self._reaches(s, back_src, header)]
         if len(round_trip) != 1:
             raise StructureError(
-                f"loop header {header}: cannot tell the looping outcome from the exit"
+                f"loop header {header}: cannot tell the looping outcome from the exit", header
             )
         loop_head = round_trip[0]
         exit_head = next(s for s in succs if s != loop_head)
         back_label, start, ends = self._branch_start(loop_head, "xor")
         if ends:
-            raise StructureError(f"loop header {header}: the looping outcome ends the flow")
+            raise StructureError(f"loop header {header}: the looping outcome ends the flow", header)
         body, reached = self.walk(start, header)
         if reached != header:
-            raise StructureError(f"loop at {header} never returns to it")
+            raise StructureError(f"loop at {header} never returns to it", header)
         exit_label, after, exit_ends = self._branch_start(exit_head, "xor")
         self._after_loop = None if exit_ends else after
         cond = self._condition(hn, [Branch(back_label, []), Branch(exit_label, [])])
@@ -658,16 +668,16 @@ class _Walker:
         hn = self.p.node(header)
         body, reached = self.walk(self._single_succ(header), split)
         if reached != split:
-            raise StructureError(f"loop at {header} never reaches its split {split}")
+            raise StructureError(f"loop at {header} never reaches its split {split}", header, split)
         self._mark(split)
         tail = self.loops[split]
         succs = self.p.successors(split)
         if len(succs) != 2:
-            raise StructureError(f"loop split {split} must have exactly 2 outcomes, has {len(succs)}")
+            raise StructureError(f"loop split {split} must have exactly 2 outcomes, has {len(succs)}", split)
         back_head = tail.branch_head if tail.branch_head is not None else header
         exits = [s for s in succs if s != back_head]
         if len(exits) != 1:
-            raise StructureError(f"loop split {split}: cannot tell the exit from the back edge")
+            raise StructureError(f"loop split {split}: cannot tell the exit from the back edge", split)
         back_label = None
         if tail.back_event:
             self._mark(tail.back_event)
@@ -702,8 +712,8 @@ def structure(proc: Process, strict: bool = False) -> Structured:
     w = _Walker(proc, strict)
     blocks, reached = w.entry()
     if reached is not None:
-        raise StructureError(f"walk stopped on {reached} without consuming it")
+        raise StructureError(f"walk stopped on {reached} without consuming it", reached)
     unreached = [n.id for n in proc.nodes if n.id not in w.seen]
     if unreached:
-        raise StructureError("unreachable nodes: " + ", ".join(unreached))
+        raise StructureError("unreachable nodes: " + ", ".join(unreached), *unreached)
     return Structured(blocks, w.notes)

@@ -13,6 +13,7 @@ from collections import Counter
 from pathlib import Path
 
 from aris2puml import __version__
+from aris2puml.diagnose import diagnose
 from aris2puml.emit import emit, slug
 from aris2puml.model import REPORT_ONLY, Note, Process
 from aris2puml.readers import READERS
@@ -34,6 +35,10 @@ def _parser() -> argparse.ArgumentParser:
                     help="run pumllint on the written diagrams (needs pumllint installed)")
     ap.add_argument("-c", "--config", help="pumllint config for --check")
     ap.add_argument("--fail-on", help="pumllint --fail-on for --check")
+    ap.add_argument("--diagnose", action="store_true",
+                    help="for each process refused by the structuring pass, also write "
+                         "<name>.refused.puml: the EPC drawn as a graph with the offending "
+                         "node(s) in red and the reason as a note")
     ap.add_argument("--strict", action="store_true",
                     help="refuse what would otherwise be approximated or dropped, instead of "
                          "warning: OR connectors, OR-joined start events, mid-flow triggers, "
@@ -55,7 +60,7 @@ def _stem(proc: Process, stems: Counter[str]) -> str:
 
 
 def convert(inputs: list[str], fmt: str, out: str, collect: bool = False,
-            strict: bool = False) -> Report:
+            strict: bool = False, diagnose_refusals: bool = False) -> Report:
     """Convert every process in ``inputs`` and account for each one.
 
     Raises ReadError / StructureError with the offending file and node —
@@ -83,14 +88,21 @@ def convert(inputs: list[str], fmt: str, out: str, collect: bool = False,
             report.refused(path, str(procs))
             continue
         for proc in procs:
+            stem = _stem(proc, stems)
             try:
                 s = structure(proc, strict)
             except StructureError as exc:
+                drawing: Path | None = None
+                if diagnose_refusals:
+                    drawing = Path(out) / f"{stem}.refused.puml"
+                    drawing.parent.mkdir(parents=True, exist_ok=True)
+                    drawing.write_text(diagnose(proc, exc, stem), encoding="utf-8", newline="\n")
                 if not collect:
-                    raise StructureError(f"{path.as_posix()} [{proc.id}]: {exc}") from exc
-                report.refused(path, str(exc), proc.id, proc.name)
+                    where = f" (see {drawing.as_posix()})" if drawing else ""
+                    raise StructureError(f"{path.as_posix()} [{proc.id}]: {exc}{where}",
+                                         *exc.nodes) from exc
+                report.refused(path, str(exc), proc.id, proc.name, drawing)
                 continue
-            stem = _stem(proc, stems)
             text = emit(proc, s, stem)
             target: Path | None = None
             if out == "-":
@@ -121,19 +133,21 @@ def _check(paths: list[Path], config: str | None, fail_on: str | None) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
-    if args.check and args.out == "-":
-        print("aris2puml: --check needs files, not '-'", file=sys.stderr)
-        return 2
+    for flag in ("check", "diagnose"):
+        if getattr(args, flag) and args.out == "-":
+            print(f"aris2puml: --{flag} needs files, not '-'", file=sys.stderr)
+            return 2
     try:
         report = convert(args.inputs, args.fmt, args.out, collect=bool(args.report),
-                         strict=args.strict)
+                         strict=args.strict, diagnose_refusals=args.diagnose)
     except (ReadError, StructureError) as exc:
         print(f"aris2puml: {exc}", file=sys.stderr)
         return 2
     for r in report.records:
         if r.status == "refused":
             where = f"{r.input} [{r.id}]: " if r.id is not None else ""
-            print(f"aris2puml: {where}{r.reason}", file=sys.stderr)
+            see = f" (see {r.diagnostic})" if r.diagnostic else ""
+            print(f"aris2puml: {where}{r.reason}{see}", file=sys.stderr)
             continue
         for n in r.notes:
             if n.code not in REPORT_ONLY:
