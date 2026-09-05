@@ -35,6 +35,9 @@ def _parser() -> argparse.ArgumentParser:
                     help="run pumllint on the written diagrams (needs pumllint installed)")
     ap.add_argument("-c", "--config", help="pumllint config for --check")
     ap.add_argument("--fail-on", help="pumllint --fail-on for --check")
+    ap.add_argument("--notes", action="store_true",
+                    help="put each function's information objects, documents and IT systems "
+                         "in a `note right` (off by default: pumllint's GEN008 counts notes)")
     ap.add_argument("--diagnose", action="store_true",
                     help="for each process refused by the structuring pass, also write "
                          "<name>.refused.puml: the EPC drawn as a graph with the offending "
@@ -60,7 +63,8 @@ def _stem(proc: Process, stems: Counter[str]) -> str:
 
 
 def convert(inputs: list[str], fmt: str, out: str, collect: bool = False,
-            strict: bool = False, diagnose_refusals: bool = False) -> Report:
+            strict: bool = False, diagnose_refusals: bool = False,
+            notes: bool = False) -> Report:
     """Convert every process in ``inputs`` and account for each one.
 
     Raises ReadError / StructureError with the offending file and node —
@@ -103,7 +107,7 @@ def convert(inputs: list[str], fmt: str, out: str, collect: bool = False,
                                          *exc.nodes) from exc
                 report.refused(path, str(exc), proc.id, proc.name, drawing)
                 continue
-            text = emit(proc, s, stem)
+            text = emit(proc, s, stem, notes)
             target: Path | None = None
             if out == "-":
                 sys.stdout.write(text)
@@ -111,8 +115,12 @@ def convert(inputs: list[str], fmt: str, out: str, collect: bool = False,
                 target = Path(out) / f"{stem}.puml"
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(text, encoding="utf-8", newline="\n")
+            omitted = [] if notes else [
+                Note("data-omitted", d.id,
+                     f"{d.id}: {d.kind} {d.name!r} on {d.node} is not drawn without --notes")
+                for d in proc.data]
             report.converted(path, proc.id, proc.name, target,
-                             dropped.get(proc.id, []) + s.notes)
+                             dropped.get(proc.id, []) + omitted + s.notes)
     return report
 
 
@@ -139,7 +147,8 @@ def main(argv: list[str] | None = None) -> int:
             return 2
     try:
         report = convert(args.inputs, args.fmt, args.out, collect=bool(args.report),
-                         strict=args.strict, diagnose_refusals=args.diagnose)
+                         strict=args.strict, diagnose_refusals=args.diagnose,
+                         notes=args.notes)
     except (ReadError, StructureError) as exc:
         print(f"aris2puml: {exc}", file=sys.stderr)
         return 2

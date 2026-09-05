@@ -22,6 +22,7 @@ aris2puml --from epml SAPModels.epml -o out/  # every EPC in an EPML document
 aris2puml corpus/*.json -o out/ --report sidecar.json  # + what each process dropped, approximated or refused
 aris2puml corpus/*.json -o out/ --strict                # refuse what would be approximated or dropped
 aris2puml corpus/*.json -o out/ --diagnose              # + <name>.refused.puml for each refusal: where, drawn
+aris2puml corpus/*.json -o out/ --notes                 # + each function's documents and systems as a note
 ```
 
 Each process becomes `<process-name-slug>.puml`; when two processes in one
@@ -62,16 +63,19 @@ ARIS report script  ──►  intermediate JSON  ──►  aris2puml  ──�
               {"id": "e1", "kind": "event",     "name": "Order received"},
               {"id": "x1", "kind": "xor"},
               {"id": "p1", "kind": "interface", "name": "Handle complaint", "ref": "PROC-0051"}],
-  "edges":   [{"from": "e1", "to": "f1"}, {"from": "f1", "to": "x1"}]
+  "edges":   [{"from": "e1", "to": "f1"}, {"from": "f1", "to": "x1"}],
+  "data":    [{"id": "d1", "kind": "document", "name": "Order form", "node": "f1", "role": "input"}]
 }
 ```
 
 `kind` is one of `function`, `event`, `xor`, `and`, `or`, `interface`.
 `lane` (functions and interfaces) is a lane id; `ref` (interfaces) is the
 linked process id. A file may hold several documents under `"processes"`.
-Information objects, documents and IT systems are not part of the
-contract: the activity diagram has no place for them and the linter
-nothing to check on them.
+`"data"` (optional) carries the information objects, documents and IT
+systems hung on a function: `kind` is `information`, `document` or
+`system`, `node` the function or interface, `role` (`input`/`output`)
+optional. They are not control flow: the diagram shows them only with
+`--notes`, and the linter has nothing to check on them.
 
 The contract is notation-neutral, and it is not the only input:
 `--from epml` reads EPML, the open EPC interchange format that ProM, EPC
@@ -99,6 +103,7 @@ roadmap says when one would.
 | loop whose XOR both merges the retry and decides | `while (Back event?) is (Back event) … endwhile (Exit event)` | ACT004 |
 | loop with one function on the return path | `repeat` … `backward :Function;` … `repeat while (…)`; events and the org unit there are dropped, with a warning | ACT006, ACT004 |
 | process interface | `' aris: interface <ref>` then `:Name;` | ACT006 |
+| information object, document, IT system on a function | nothing, by default; with `--notes`, one `note right` per function listing them (`document: Order form`, `system: ERP`, `input: …`) | GEN008 |
 | process name, id, owner | `@startuml <slug>`, `title`, `footer owner: … — ARIS process <id>` | GEN001/002/006/007 |
 
 **Defects are preserved, not repaired.** A flow that ends on a function
@@ -156,8 +161,9 @@ cannot carry — for every process, what was:
 - **approximated** — the shape survives with its meaning bent: an OR split
   emitted as `fork`, a mid-flow trigger folded into an arrow label;
 - **dropped** — an element with no place in the diagram: the events and the
-  org unit on a `backward` return path, and, reading EPML, the information
-  objects and IT systems the contract never carried;
+  org unit on a `backward` return path; a data object tied to no function;
+  and, without `--notes`, every data object the diagram would have shown
+  with it (`data-omitted` — the sidecar measures what the flag would add);
 - **refused** — the process, with the connector and the reason, verbatim.
 
 A summary block gives the number a process owner reads

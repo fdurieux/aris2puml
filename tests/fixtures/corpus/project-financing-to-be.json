@@ -367,5 +367,25 @@
    "from": "sid-263AE565-EBA9-4DCC-8754-BB1A899FA7A9",
    "to": "sid-9BF10117-C0AA-48A4-B264-819802C4F2F5"
   }
+ ],
+ "data": [
+  {
+   "id": "sid-923B28EA-7720-401F-8545-87DFF5FEAE3B",
+   "kind": "system",
+   "name": "ERP System",
+   "node": "sid-6DC172C2-D03F-45F7-8ABC-49B6FCD4DE67"
+  },
+  {
+   "id": "sid-57A26C9F-0174-4D89-BE00-95F797352F31",
+   "kind": "system",
+   "name": "ERP System",
+   "node": "sid-B7C87AD1-F988-48DC-BFD3-6F8D302A9D9E"
+  },
+  {
+   "id": "sid-3B867B88-0728-4DFC-9C66-2809B7C9B22F",
+   "kind": "system",
+   "name": "ERP System",
+   "node": "sid-51E31107-671F-4F86-A9F6-AEECFFBDA148"
+  }
  ]
 }

@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 KINDS = ("function", "event", "xor", "and", "or", "interface")
+DATA_KINDS = ("information", "document", "system")
 
 
 @dataclass(frozen=True)
@@ -33,6 +34,17 @@ class Edge:
 
 
 @dataclass(frozen=True)
+class Data:
+    """An information object, document or IT system hung on a function.
+    Not control flow: emitted only with ``--notes``, as a ``note right``."""
+    id: str
+    kind: str                 # one of DATA_KINDS
+    name: str
+    node: str                 # the function or interface it belongs to
+    role: str | None = None   # "input" / "output" when the source says so
+
+
+@dataclass(frozen=True)
 class Note:
     """One thing a reader or the structuring pass could not carry over.
 
@@ -46,10 +58,13 @@ class Note:
 
 
 APPROXIMATED = ("mid-flow-trigger", "or-start-events", "or-connector")
-DROPPED = ("unsupported-element", "unused-lane", "return-path-events", "return-path-lane")
+DROPPED = ("unsupported-element", "unused-lane", "unattached-data", "data-omitted",
+           "return-path-events", "return-path-lane")
 # Reader drops are the contract working as documented, not a per-run surprise:
 # they go into the sidecar and stay off stderr.
-REPORT_ONLY = ("unsupported-element", "unused-lane")
+# `data-omitted` is the run without --notes: the sidecar says what the flag
+# would add, which is the demand measure for it.
+REPORT_ONLY = ("unsupported-element", "unused-lane", "unattached-data", "data-omitted")
 # What --strict refuses: every loss the structuring pass records. Reader
 # drops are the contract, not a fidelity choice, so they stay out.
 STRICT = tuple(c for c in APPROXIMATED + DROPPED if c not in REPORT_ONLY)
@@ -63,8 +78,12 @@ class Process:
     lanes: list[Lane] = field(default_factory=list)
     nodes: list[Node] = field(default_factory=list)
     edges: list[Edge] = field(default_factory=list)
+    data: list[Data] = field(default_factory=list)
 
     # -- derived views -----------------------------------------------------
+    def data_of(self, node_id: str) -> list[Data]:
+        return [d for d in self.data if d.node == node_id]
+
     def node(self, node_id: str) -> Node:
         for n in self.nodes:
             if n.id == node_id:
@@ -104,6 +123,16 @@ class Process:
         for e in self.edges:
             if e.src not in idset or e.dst not in idset:
                 problems.append(f"edge {e.src}->{e.dst}: unknown node")
+        kinds = {n.id: n.kind for n in self.nodes}
+        for d in self.data:
+            if d.kind not in DATA_KINDS:
+                problems.append(f"{d.id}: unknown data kind {d.kind!r}")
+            if not d.name.strip():
+                problems.append(f"{d.id}: {d.kind} has no name")
+            if kinds.get(d.node) not in ("function", "interface"):
+                problems.append(f"{d.id}: data on {d.node!r}, which is not a function")
+            if d.role not in (None, "input", "output"):
+                problems.append(f"{d.id}: unknown role {d.role!r}")
         if self.nodes and not any(not self.predecessors(n.id) for n in self.nodes):
             problems.append("no start node (every node has a predecessor)")
         return problems

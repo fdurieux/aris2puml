@@ -75,7 +75,7 @@ def test_every_note_code_belongs_to_exactly_one_category():
     assert not set(APPROXIMATED) & set(DROPPED)
     for code in ("mid-flow-trigger", "or-start-events", "or-connector",
                  "return-path-events", "return-path-lane",
-                 "unsupported-element", "unused-lane"):
+                 "unsupported-element", "unused-lane", "unattached-data", "data-omitted"):
         assert code in APPROXIMATED or code in DROPPED, code
 
 
@@ -107,14 +107,15 @@ def test_the_document_is_versioned_and_names_the_tool():
 # --- the reader's half: what the EPML reader drops -------------------------
 
 def test_the_epml_reader_records_the_data_object_it_drops(tmp_path):
+    """`d1` is tied to a function and carried; `s1` is tied to nothing."""
     p = tmp_path / "claims.epml"
     p.write_text(DOC, encoding="utf-8")
     notes: dict[str, list[Note]] = {}
     procs = read_epml(p, notes)
     assert set(notes) == {proc.id for proc in procs}
-    (d1,) = [n for ns in notes.values() for n in ns]
-    assert d1.code == "unsupported-element" and d1.node == "d1"
-    assert "<dataField>" in d1.text and "Claim form" in d1.text
+    (s1,) = [n for ns in notes.values() for n in ns]
+    assert s1.code == "unattached-data" and s1.node == "s1"
+    assert "<application>" in s1.text and "Claims system" in s1.text
     # and without the channel the reader is exactly as before
     assert [pr.id for pr in read_epml(p)] == [pr.id for pr in procs]
 

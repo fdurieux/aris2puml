@@ -195,10 +195,26 @@ Two rules that follow from the pin to pumllint:
   `--strict --report` reads 3 of 9 (the three SAP OR approximations become
   refusals); over BPMAI 1 756 of 4 332 (40.5 %) convert faithfully, from
   46.0 % with approximations allowed.*
-- [ ] **B3. `--notes`** — information objects, documents and IT systems as
-  `note right` on their function; opt-in because pumllint's GEN008 counts
-  notes. Extends the JSON contract additively (a `"data"` array; version
-  stays 1). Small emitter change; the report script grows a pass.
+- [x] **B3. `--notes`** *(2026-09-05)* — information objects, documents and
+  IT systems as `note right` on their function; opt-in because pumllint's
+  GEN008 counts notes. Extends the JSON contract additively (a `"data"`
+  array; version stays 1). Small emitter change; the report script grows a
+  pass.
+  *Shipped as designed: `"data"` items are `{id, kind, name, node, role?}`
+  with `kind` ∈ information/document/system; one note per function, not
+  per object, so GEN008 (≥ 4 notes and > 0.5 per element) stays quiet on
+  any real process; a note follows a `backward` action too. The EPML reader
+  carries `<dataField>`/`<application>` tied to a function by a
+  `<relation>`; the BPMAI corpus tool carries `Data`/`System` shapes tied by
+  a `Relation`; the report script gained its pass (information carriers,
+  clusters, technical terms, application system types; still unrun).
+  Demand, measured first: the SAP reference EPML carries no data element at
+  all (only arc/event/function/connectors — not even roles), so nothing
+  moves there; of the four kept BPMAI models one,
+  `project-financing-to-be.json`, has three ERP-system objects, now in its
+  fixture; the real source is ARIS, adopter-gated like the script. Without
+  `--notes` every data object is a `data-omitted` record in the sidecar, so
+  `--report` now measures what the flag would add.*
 - [ ] **B4. Process hierarchy** — a `--manifest` that writes the set of
   converted processes and their interface references, so pumllint lints
   them as one batch (XD004 across processes) and a missing referenced

@@ -159,6 +159,19 @@ def test_diagnose_needs_files():
     assert rc == 2 and "--diagnose needs files" in err
 
 
+def test_without_notes_the_sidecar_says_what_the_flag_would_add(tmp_path):
+    src = FIXTURES / "corpus" / "project-financing-to-be.json"
+    side = tmp_path / "s.json"
+    rc, _, err = _run([str(src), "-o", str(tmp_path / "out"), "--report", str(side)])
+    assert rc == 0 and err == ""                       # sidecar only, not stderr
+    (rec,) = json.loads(side.read_text(encoding="utf-8"))["processes"]
+    assert [d["code"] for d in rec["dropped"]] == ["data-omitted"] * 3
+    assert "not drawn without --notes" in rec["dropped"][0]["detail"]
+    rc, _, _ = _run([str(src), "-o", str(tmp_path / "notes"), "--notes", "--report", str(side)])
+    (rec,) = json.loads(side.read_text(encoding="utf-8"))["processes"]
+    assert rc == 0 and rec["dropped"] == []
+
+
 def test_check_needs_files():
     rc, _, err = _run([str(FIXTURES / "order_to_cash.json"), "-o", "-", "--check"])
     assert rc == 2 and "needs files" in err
