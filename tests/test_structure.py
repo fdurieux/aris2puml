@@ -131,3 +131,60 @@ def test_a_ring_of_connectors_with_no_exit_is_refused():
     )
     with pytest.raises(StructureError, match="never reach an end"):
         structure(proc)
+
+
+# --- roadmap B2: --strict ----------------------------------------------------
+
+def _or_process():
+    return build(
+        [("e0", "event", "Start"), ("o1", "or"), ("f1", "function", "Do a"),
+         ("f2", "function", "Do b"), ("o2", "or"), ("f3", "function", "Finish"), ("ee", "event", "Done")],
+        ["e0>o1", "o1>f1", "o1>f2", "f1>o2", "f2>o2", "o2>f3", "f3>ee"],
+    )
+
+
+def test_strict_refuses_the_or_connector_it_would_otherwise_approximate():
+    with pytest.raises(StructureError) as exc:
+        structure(_or_process(), strict=True)
+    assert str(exc.value) == "o1: OR connector has no activity-diagram equivalent (refused under --strict)"
+    # and the default is exactly as before: converted, with the warning
+    assert structure(_or_process()).warnings == [
+        "o1: OR connector has no activity-diagram equivalent; emitted as fork"]
+
+
+def test_strict_refuses_or_joined_start_events():
+    proc = build(
+        [("a", "event", "A"), ("b", "event", "B"), ("j", "or"),
+         ("f", "function", "Handle"), ("ee", "event", "Handled")],
+        ["a>j", "b>j", "j>f", "f>ee"],
+    )
+    assert structure(proc).warnings  # approximated by default
+    with pytest.raises(StructureError, match=r"^start: OR-joined start events .* \(refused under --strict\)$"):
+        structure(proc, strict=True)
+
+
+def test_strict_refuses_a_mid_flow_trigger():
+    from tests.test_entry import mid_flow_trigger_process
+    proc = mid_flow_trigger_process()
+    assert any("external trigger" in w for w in structure(proc).warnings)
+    with pytest.raises(StructureError, match=r"^j: external trigger joins mid-process \(and\): "
+                                              r"Budget to be updated \(refused under --strict\)$"):
+        structure(proc, strict=True)
+
+
+def test_strict_refuses_a_backward_return_path_that_drops_its_events():
+    from tests.test_loops import _rework_with_return_work
+    proc = _rework_with_return_work()
+    assert structure(proc).warnings  # dropped, with a warning, by default
+    with pytest.raises(StructureError, match=r"^x: `backward` carries one action and no arrow, so the "
+                                              r"return path's event\(s\) are dropped: Loan application "
+                                              r"received \(refused under --strict\)$"):
+        structure(proc, strict=True)
+
+
+def test_strict_leaves_a_faithful_process_alone():
+    proc = build(
+        [("e0", "event", "Started"), ("f", "function", "Do it"), ("e1", "event", "Done")],
+        ["e0>f", "f>e1"],
+    )
+    assert structure(proc, strict=True).notes == []

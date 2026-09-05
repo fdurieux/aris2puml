@@ -112,10 +112,10 @@ def test_starts_that_never_meet_each_run_to_their_own_stop():
     ]
 
 
-def test_mid_flow_trigger_at_an_and_join_is_folded_with_a_warning():
-    # 10.json in the SAP set: a branch's event and an external "Budget to be
-    # updated" both feed the AND join before "Update".
-    proc = build(
+def mid_flow_trigger_process():
+    """10.json in the SAP set: a branch's event and an external "Budget to be
+    updated" both feed the AND join before "Update"."""
+    return build(
         [("e0", "event", "Order created"), ("x", "or"),
          ("f1", "function", "Procure"), ("e1", "event", "Procured"), ("j", "and"),
          ("f2", "function", "Update budget"), ("e2", "event", "Budget updated"),
@@ -123,6 +123,10 @@ def test_mid_flow_trigger_at_an_and_join_is_folded_with_a_warning():
          ("f3", "function", "Analyse"), ("e3", "event", "Analysed")],
         ["e0>x", "x>f1", "f1>e1", "e1>j", "t>j", "j>f2", "f2>e2", "x>f3", "f3>e3"],
     )
+
+
+def test_mid_flow_trigger_at_an_and_join_is_folded_with_a_warning():
+    proc = mid_flow_trigger_process()
     s = structure(proc)
     assert any(isinstance(b, Trigger) for body in s.blocks[1].branches for b in body)
     assert "j: external trigger joins mid-process (and): Budget to be updated" in s.warnings

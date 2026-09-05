@@ -20,6 +20,7 @@ aris2puml order_to_cash.json -o processes/ --check -c conventions.toml --fail-on
 aris2puml order_to_cash.json -o -            # print the diagram
 aris2puml --from epml SAPModels.epml -o out/  # every EPC in an EPML document
 aris2puml corpus/*.json -o out/ --report sidecar.json  # + what each process dropped, approximated or refused
+aris2puml corpus/*.json -o out/ --strict                # refuse what would be approximated or dropped
 ```
 
 Exit codes: `0` converted (and, with `--check`, nothing at or above
@@ -148,6 +149,18 @@ the exit code is still `2` when anything was refused. Reader-level drops
 go into the sidecar only — they are the contract working as documented,
 not a per-run surprise — while the structuring pass's approximations and
 drops are also warned on stderr, as before.
+
+## Gating on fidelity: `--strict`
+
+`--strict` turns every approximation and drop the structuring pass would
+otherwise record into a refusal: an OR connector, OR-joined start events,
+a mid-flow trigger, a `backward` return path that loses its events or its
+org unit. The message is the warning's first half plus
+`(refused under --strict)`; the exit code is `2`, like any other refusal.
+Reader-level drops are not in scope — they are the contract, not a choice
+the converter made. `--strict --report` is the pair for a team gating on
+fidelity: the sidecar's `converted_percent` is then the share of the corpus
+that converts *faithfully*, and each refusal says what would have bent.
 
 How often that bites, measured over two public EPC collections: 74 % of
 the 604 SAP reference models convert today (26 % before several start
