@@ -114,6 +114,15 @@ Two rules that follow from the pin to pumllint:
   outputs are named from the process *name*, so two processes sharing a
   name overwrite one file — the sidecar shows both records pointing at it.
   The 0.3.0 criterion, "≥ 90 % converts, measured by A3", is now measurable.
+  *2026-09-05: the name collision is fixed. Measured first on BPMAI: 1 994
+  processes converted into 1 833 files — 73 names shared by 234 processes,
+  161 diagrams overwritten (`new-process` ×22, `neuer-prozess` ×17 …).
+  Now a name shared within one run gets the process id appended for every
+  holder, in the file name and the diagram's own `@startuml` name, so no
+  file is overwritten and none depends on input order for keeping the
+  bare name; every input is read before the first file is written, which
+  the naming needs and which also means a document the reader refuses
+  leaves no partial output behind.*
   *2026-09-05: the first corpus-wide run exposed a hang. Seven BPMAI
   models — all tiny — contain a cycle that never reaches an end event (a
   connector whose only successor is itself, or a ring of connectors

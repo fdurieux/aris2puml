@@ -23,6 +23,11 @@ aris2puml corpus/*.json -o out/ --report sidecar.json  # + what each process dro
 aris2puml corpus/*.json -o out/ --strict                # refuse what would be approximated or dropped
 ```
 
+Each process becomes `<process-name-slug>.puml`; when two processes in one
+run share a name, every one of them gets its process id appended
+(`new-process-proc-1.puml`), so no diagram overwrites another and none
+depends on input order for keeping the bare name.
+
 Exit codes: `0` converted (and, with `--check`, nothing at or above
 `--fail-on`); `1` `--check` found issues; `2` an input could not be read
 or structured, or usage error.
