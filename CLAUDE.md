@@ -181,10 +181,11 @@ repositories sit side by side (roadmap item D1 automates this).
 - **The process carries one attribute: `owner`.** Product, segment,
   channel or any other facet is an additive contract change plus the
   report script, not an emitter tweak.
-- **The README's corpus paragraph is dated.** "32 % of BPMAI" is the
-  pre-A2 census; the current columns (74.0 % SAP, 46.0 % BPMAI, 40.5 %
-  under `--strict`) are in `tests/fixtures/corpus/README.md`. Quote that
-  file.
+- **Corpus figures live in one place.** The README's paragraph quotes
+  the headline columns (74.0 % SAP, 46.0 % BPMAI, 40.5 % under
+  `--strict`); the full table and the earlier columns are in
+  `tests/fixtures/corpus/README.md`. When the census moves, update both
+  in the same commit, and quote the corpus README anywhere else.
 - **The "no entry" refusal bucket is empty on SAP.** The three cases
   turned out to be a loop-header misclassification, fixed under B1. Do
   not build an argument on that bucket.
