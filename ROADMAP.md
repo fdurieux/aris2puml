@@ -124,6 +124,17 @@ Two rules that follow from the pin to pumllint:
   1 skipped" until an export lands. The corpus README gained *The private
   set* with no row: nothing measured yet. A1b's gate is unchanged -- the
   harness proves nothing until the script has run in an ARIS.*
+  *2026-09-06, and the row: `tools/corpus/private_set.py` prints the
+  corpus README's rows for the private set -- converted count and share,
+  the refusal buckets in the README's own names (anything unmapped folded
+  into "smaller refusals" and listed under the table, never dropped), and
+  the sidecar's approximated / dropped / flagged -- from the census tally
+  and the `--report` sidecar over the same directory, exiting 2 if the two
+  disagree on `converted` (the invariant CLAUDE.md names). Empty directory:
+  "nothing to measure", exit 2. Pinned by `tests/test_private_set.py` over
+  one converting and one refused committed model. The README section says
+  where the pasted table goes and that it carries the measurement date.
+  Still no row: nothing has been measured.*
 - [x] **A2. Multiple start events** *(2026-09-04)* — shipped as *entry
   regions* plus *mid-flow triggers*. Entry region: start events grouped by
   the join each reaches, following the post-dominator tree, into nested

@@ -139,11 +139,11 @@ the three tests that lint the converter's output).
 
 ```bash
 pip install -e ".[test,check]"            # both extras; CI installs exactly this
-python -m pytest -q                       # "134 passed, 1 skipped" with pumllint
+python -m pytest -q                       # "136 passed, 1 skipped" with pumllint
                                           # installed: the skip is test_real.py, the
                                           # private-fixture module, whole, until
                                           # tests/fixtures/real/ holds an export.
-                                          # Without pumllint: "109 passed, 5 skipped" -
+                                          # Without pumllint: "111 passed, 5 skipped" -
                                           # and each skip is a WHOLE MODULE (test_cli,
                                           # test_lanes, test_notes, test_docs_flags,
                                           # test_real: 25 tests never collected, the
@@ -176,6 +176,11 @@ python tools/corpus/bpmai_to_json.py bpmai/models DIR # same for the BPMAI set
 python tools/corpus/census.py DIR         # convert-or-refuse tally, refusals
                                           # bucketed by reason; the source of
                                           # every corpus figure in the docs
+python tools/corpus/private_set.py [DIR]  # the corpus README's row for the
+                                          # private set (tests/fixtures/real/ by
+                                          # default): census + sidecar, printed
+                                          # in the README's bucket names, refused
+                                          # when the two disagree on `converted`
 ```
 
 Scratch output (`out/`, `sidecar.json`) is not gitignored: write it outside

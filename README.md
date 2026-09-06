@@ -65,7 +65,8 @@ reads as version-1 JSON, converts without a refusal, and lints clean under
 `tests/fixtures/conventions.toml`. With the directory empty the module
 skips. One process passing is the roadmap's 0.2.0 exit criterion; three
 are 1.0.0's. What reaches the repository afterwards is a census row in
-the corpus README, never the export.
+the corpus README, never the export -- `python tools/corpus/private_set.py`
+prints that row ready to paste.
 
 ## The intermediate JSON (version 1)
 

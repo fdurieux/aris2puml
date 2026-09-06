@@ -39,11 +39,13 @@ defects of the fixture: the point of this directory is to find out.
 
 Figures, never files. Once the exports are here:
 
-    python tools/corpus/census.py tests/fixtures/real
-    aris2puml tests/fixtures/real/*.json -o /tmp/out --report /tmp/sidecar.json
+    python tools/corpus/private_set.py
 
-give the converted count, the refusal buckets and the sidecar's counts;
-that row goes in `tests/fixtures/corpus/README.md` under *The private
-set*, written after it was measured, with no process names and no
-diagram. A wider corpus you only want measured, not proven, does not need
-to be here at all: both commands take any directory.
+prints the row for `tests/fixtures/corpus/README.md` -- the converted
+count and percentage, the refusal buckets in that file's own names, and
+the sidecar's approximated / dropped / flagged counts -- from the census
+and the `--report` sidecar together, and refuses to print if the two
+disagree. Paste it under *The private set* with the date it was measured;
+it carries no process names and no diagram. A wider corpus you only want
+measured, not proven, does not need to be here at all: the tool takes any
+directory as its argument.
