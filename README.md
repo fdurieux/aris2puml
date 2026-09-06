@@ -101,9 +101,9 @@ roadmap says when one would.
 | XOR with more outcomes | `switch (Function outcome?)` / `case (Event)` … `endswitch` | ACT003 |
 | AND split/join | `fork` / `fork again` / `end fork` | ACT004 |
 | OR split/join | `fork` preceded by `' epc: OR-split <id>`, plus a warning on stderr | — |
-| loop (back edge to an XOR join below the header) | `repeat … repeat while (Back event?) is (Back event) not (Exit event)` | ACT004 |
-| loop whose XOR both merges the retry and decides | `while (Back event?) is (Back event) … endwhile (Exit event)` | ACT004 |
-| loop with one function on the return path | `repeat` … `backward :Function;` … `repeat while (…)`; events and the org unit there are dropped, with a warning | ACT006, ACT004 |
+| loop (back edge to an XOR join below the header) | `repeat … repeat while (Back event?) is (Back event) not (Exit event)` — each label only when the loop has that event | ACT003, ACT004 |
+| loop whose XOR both merges the retry and decides | `while (Back event?) is (Back event) … endwhile (Exit event)` | ACT003, ACT004 |
+| loop with one function on the return path | `repeat` … `backward :Function;` … `repeat while (…)`; events and the org unit there are dropped, with a warning | ACT006, ACT003, ACT004 |
 | process interface | `' aris: interface <ref>` then `:Name;` | ACT006 |
 | information object, document, IT system on a function | nothing, by default; with `--notes`, one `note right` per function listing them (`document: Order form`, `system: ERP`, `input: …`) | GEN008 |
 | process name, id, owner | `@startuml <slug>`, `title`, `footer owner: … — ARIS process <id>` | GEN001/002/006/007 |
