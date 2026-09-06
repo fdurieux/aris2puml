@@ -105,6 +105,17 @@ so the fixtures and the CLI's `--from epml` cannot drift apart. Oryx JSON
 has no reader and is not an accepted input format; adding one would be a
 roadmap decision (Arc C), not something this corpus presumes.
 
+## The private set
+
+`tests/fixtures/real/` (git-ignored; its README explains) holds an
+adopter's real exports, which cannot be committed (ROADMAP A1,
+2026-09-06). `tests/test_real.py` proves every process there round-trips
+and lints clean, and a private fixture counts toward 1.0.0. What is
+published from it is the same row the SAP set has here -- converted count,
+refusal buckets, sidecar counts -- produced by `tools/corpus/census.py`
+and `--report` over the directory and written down after it was measured.
+No row yet: nothing has been measured.
+
 ## The models
 
 | File | Models | Size | Today |

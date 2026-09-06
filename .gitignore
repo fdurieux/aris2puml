@@ -4,3 +4,5 @@ build/
 dist/
 .pytest_cache/
 tests/fixtures/corpus/sap/
+tests/fixtures/real/*
+!tests/fixtures/real/README.md

@@ -55,6 +55,18 @@ ARIS report script  ──►  intermediate JSON  ──►  aris2puml  ──�
 - **`aris2puml/emit.py`** writes PlantUML following the guide's mapping
   table line for line.
 
+### Your own exports
+
+You do not have to commit a real process to prove the converter on one.
+Put the JSON the report script writes under `tests/fixtures/real/` -- the
+directory is git-ignored, and its README says what goes there -- and
+`python -m pytest -q tests/test_real.py` checks that every process in it
+reads as version-1 JSON, converts without a refusal, and lints clean under
+`tests/fixtures/conventions.toml`. With the directory empty the module
+skips. One process passing is the roadmap's 0.2.0 exit criterion; three
+are 1.0.0's. What reaches the repository afterwards is a census row in
+the corpus README, never the export.
+
 ## The intermediate JSON (version 1)
 
 ```json
