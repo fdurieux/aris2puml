@@ -38,6 +38,10 @@ def _parser() -> argparse.ArgumentParser:
     ap.add_argument("--notes", action="store_true",
                     help="put each function's information objects, documents and IT systems "
                          "in a `note right` (off by default: pumllint's GEN008 counts notes)")
+    ap.add_argument("--no-lane", metavar="LABEL", default="",
+                    help="label for the swimlane of functions that have no org unit, in a "
+                         "process that has swimlanes; blank by default, which pumllint's "
+                         "ACT005 flags — the sidecar counts them either way")
     ap.add_argument("--diagnose", action="store_true",
                     help="for each process refused by the structuring pass, also write "
                          "<name>.refused.puml: the EPC drawn as a graph with the offending "
@@ -62,9 +66,26 @@ def _stem(proc: Process, stems: Counter[str]) -> str:
     return stem if stems[stem] == 1 else f"{stem}-{slug(proc.id)}"
 
 
+def _flagged(proc: Process) -> list[Note]:
+    """Model defects the diagram shows as they are: a function with no org
+    unit in a process that has them (drawn in the no-lane lane), an org
+    unit with no name (drawn as a blank lane)."""
+    flagged: list[Note] = []
+    if any(n.lane for n in proc.nodes):
+        for n in proc.nodes:
+            if n.kind in ("function", "interface") and n.lane is None:
+                flagged.append(Note("no-lane", n.id,
+                                    f"{n.id}: {n.name!r} has no org unit; drawn in the no-lane lane"))
+    for lane in proc.lanes:
+        if not lane.name.strip():
+            flagged.append(Note("unnamed-lane", lane.id,
+                                f"{lane.id}: org unit has no name; drawn as a blank lane"))
+    return flagged
+
+
 def convert(inputs: list[str], fmt: str, out: str, collect: bool = False,
             strict: bool = False, diagnose_refusals: bool = False,
-            notes: bool = False) -> Report:
+            notes: bool = False, no_lane: str = "") -> Report:
     """Convert every process in ``inputs`` and account for each one.
 
     Raises ReadError / StructureError with the offending file and node —
@@ -107,7 +128,7 @@ def convert(inputs: list[str], fmt: str, out: str, collect: bool = False,
                                          *exc.nodes) from exc
                 report.refused(path, str(exc), proc.id, proc.name, drawing)
                 continue
-            text = emit(proc, s, stem, notes)
+            text = emit(proc, s, stem, notes, no_lane)
             target: Path | None = None
             if out == "-":
                 sys.stdout.write(text)
@@ -120,7 +141,7 @@ def convert(inputs: list[str], fmt: str, out: str, collect: bool = False,
                      f"{d.id}: {d.kind} {d.name!r} on {d.node} is not drawn without --notes")
                 for d in proc.data]
             report.converted(path, proc.id, proc.name, target,
-                             dropped.get(proc.id, []) + omitted + s.notes)
+                             dropped.get(proc.id, []) + omitted + _flagged(proc) + s.notes)
     return report
 
 
@@ -148,7 +169,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         report = convert(args.inputs, args.fmt, args.out, collect=bool(args.report),
                          strict=args.strict, diagnose_refusals=args.diagnose,
-                         notes=args.notes)
+                         notes=args.notes, no_lane=args.no_lane)
     except (ReadError, StructureError) as exc:
         print(f"aris2puml: {exc}", file=sys.stderr)
         return 2

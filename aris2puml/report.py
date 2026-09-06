@@ -11,12 +11,14 @@ Shape (version 1)::
       "version": 1,
       "tool": "aris2puml 0.1.0",
       "summary": {"inputs": 2, "processes": 9, "converted": 6, "refused": 3,
-                  "converted_percent": 66.7, "approximated": 4, "dropped": 5},
+                  "converted_percent": 66.7, "approximated": 4, "dropped": 5,
+                  "flagged": 2},
       "processes": [
         {"input": "corpus/a.json", "id": "PROC-0042", "name": "Order to cash",
          "status": "converted", "output": "out/order-to-cash.puml",
          "approximated": [{"code": "or-connector", "node": "o1", "detail": "…"}],
-         "dropped": []},
+         "dropped": [],
+         "flagged": [{"code": "no-lane", "node": "f3", "detail": "…"}]},
         {"input": "corpus/b.json", "id": "EPML-459", "name": "1Tr_gfmu",
          "status": "refused", "reason": "join 31 reached without …",
          "diagnostic": "out/1tr-gfmu.refused.puml"}
@@ -26,6 +28,8 @@ Shape (version 1)::
 A document the reader refuses yields one record with ``"id": null``: both
 readers are all-or-nothing per document, so the document is the unit.
 ``diagnostic`` is present when ``--diagnose`` drew the refused process.
+``flagged`` holds model defects the diagram shows as they are (a function
+with no org unit, an org unit with no name): neither dropped nor bent.
 Every path is POSIX, on every platform, like the CLI's own output.
 """
 
@@ -36,7 +40,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from aris2puml import __version__
-from aris2puml.model import APPROXIMATED, DROPPED, Note
+from aris2puml.model import APPROXIMATED, DROPPED, FLAGGED, Note
 
 VERSION = 1
 
@@ -60,12 +64,17 @@ class Record:
     def dropped(self) -> list[Note]:
         return [n for n in self.notes if n.code in DROPPED]
 
+    @property
+    def flagged(self) -> list[Note]:
+        return [n for n in self.notes if n.code in FLAGGED]
+
     def as_dict(self) -> dict:
         d: dict = {"input": self.input, "id": self.id, "name": self.name, "status": self.status}
         if self.status == "converted":
             d["output"] = self.output
             d["approximated"] = [_note(n) for n in self.approximated]
             d["dropped"] = [_note(n) for n in self.dropped]
+            d["flagged"] = [_note(n) for n in self.flagged]
         else:
             d["reason"] = self.reason
             if self.diagnostic:
@@ -117,6 +126,7 @@ class Report:
             "converted_percent": round(100 * len(conv) / total, 1) if total else 0.0,
             "approximated": sum(len(r.approximated) for r in conv),
             "dropped": sum(len(r.dropped) for r in conv),
+            "flagged": sum(len(r.flagged) for r in conv),
         }
 
     def as_dict(self) -> dict:

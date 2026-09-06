@@ -24,9 +24,15 @@ def slug(name: str) -> str:
 
 
 class _Emitter:
-    def __init__(self, proc: Process, notes: bool = False):
+    def __init__(self, proc: Process, notes: bool = False, no_lane: str = ""):
         self.p = proc
         self.notes = notes
+        # In a process that uses lanes every action is drawn in its own, and
+        # "no org unit" is a lane of its own: the no-lane lane, blank unless
+        # --no-lane says otherwise. PlantUML rejects a lane-less `start`
+        # once lanes are used, and rejects `||`, so a blank is one space.
+        self.no_lane = no_lane or " "
+        self.uses_lanes = any(n.lane for n in proc.nodes)
         self.lines: list[str] = []
         self.lane: str | None = None
 
@@ -51,9 +57,14 @@ class _Emitter:
         self.lines.append("  " * depth + text)
 
     def _lane(self, depth: int, lane_id: str | None) -> None:
-        if lane_id is None:
+        if not self.uses_lanes:
             return
-        name = self.p.lane_name(lane_id)
+        if lane_id is None:
+            name = self.no_lane
+        else:
+            # An org unit with an empty name is the model's own defect; it
+            # is drawn as the minimal form PlantUML accepts, not relabelled.
+            name = self.p.lane_name(lane_id) or " "
         if name != self.lane:
             self.out(depth, f"|{name}|")
             self.lane = name
@@ -82,9 +93,9 @@ class _Emitter:
     def blocks(self, blocks: list, depth: int) -> None:
         for b in blocks:
             if isinstance(b, Action):
+                self._lane(depth, b.node.lane)
                 if b.node.kind == "interface":
                     self.out(depth, f"' aris: interface {b.node.ref or '?'}")
-                self._lane(depth, b.node.lane)
                 self.out(depth, f":{b.node.name};")
                 self._note(depth, b.node.id)
             elif isinstance(b, EventArrow):
@@ -195,8 +206,7 @@ class _Emitter:
         self.out(0, "footer " + " — ".join(parts))
         self.out(0, "")
         first = self._first_action(s.blocks)
-        if first is not None:
-            self._lane(0, first.node.lane)
+        self._lane(0, first.node.lane if first is not None else None)
         self.out(0, "start")
         self.blocks(s.blocks, 0)
         self.out(0, "@enduml")
@@ -204,7 +214,8 @@ class _Emitter:
 
 
 def emit(proc: Process, structured: Structured, name: str | None = None,
-         notes: bool = False) -> str:
+         notes: bool = False, no_lane: str = "") -> str:
     """The diagram, named ``name`` (the CLI's file stem) or the process
-    name's slug; with ``notes``, each function's data objects as a note."""
-    return _Emitter(proc, notes).render(structured, name)
+    name's slug; with ``notes``, each function's data objects as a note;
+    ``no_lane`` labels the lane of functions that have no org unit."""
+    return _Emitter(proc, notes, no_lane).render(structured, name)

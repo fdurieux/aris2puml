@@ -60,11 +60,14 @@ class Note:
 APPROXIMATED = ("mid-flow-trigger", "or-start-events", "or-connector")
 DROPPED = ("unsupported-element", "unused-lane", "unattached-data", "data-omitted",
            "return-path-events", "return-path-lane")
+# Model defects the diagram shows as they are — neither dropped nor bent —
+# so that the sidecar counts them whatever the picture says.
+FLAGGED = ("no-lane", "unnamed-lane")
 # Reader drops are the contract working as documented, not a per-run surprise:
 # they go into the sidecar and stay off stderr.
 # `data-omitted` is the run without --notes: the sidecar says what the flag
 # would add, which is the demand measure for it.
-REPORT_ONLY = ("unsupported-element", "unused-lane", "unattached-data", "data-omitted")
+REPORT_ONLY = ("unsupported-element", "unused-lane", "unattached-data", "data-omitted", *FLAGGED)
 # What --strict refuses: every loss the structuring pass records. Reader
 # drops are the contract, not a fidelity choice, so they stay out.
 STRICT = tuple(c for c in APPROXIMATED + DROPPED if c not in REPORT_ONLY)

@@ -209,7 +209,7 @@ def test_report_records_a_refusal_converts_the_rest_and_still_exits_2(tmp_path):
     doc = json.loads(side.read_text(encoding="utf-8"))
     assert [r["status"] for r in doc["processes"]] == ["refused", "converted"]
     assert doc["summary"] == {"inputs": 2, "processes": 2, "converted": 1, "refused": 1,
-                              "converted_percent": 50.0, "approximated": 0, "dropped": 0}
+                              "converted_percent": 50.0, "approximated": 0, "dropped": 0, "flagged": 0}
 
 
 def test_exit_codes_do_not_move_with_report(tmp_path):
