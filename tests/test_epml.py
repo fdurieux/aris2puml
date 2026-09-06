@@ -75,7 +75,8 @@ def test_reads_every_epc_with_lanes_interfaces_and_collapsed_names(doc):
 def test_converts_to_the_same_shape_the_json_path_would(doc):
     a, _ = read_epml(doc)
     raw = emit(a, structure(a)).splitlines()
-    assert raw[:3] == ["@startuml handle-claim", "title Handle claim", "footer ARIS process EPML-7"]
+    assert raw[:3] == ["@startuml handle-claim", "title Handle claim",
+                       "footer ARIS process EPML-7 — interfaces: 9"]
     lines = [l.strip() for l in raw]  # branch bodies are indented
     assert "|Claims desk|" in lines and ":Register claim;" in lines
     assert "if (Claim valid?) then (Claim valid)" in lines

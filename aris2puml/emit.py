@@ -4,7 +4,9 @@ Follows the mapping table in pumllint's docs/business-processes.md §2:
 functions are single-line actions, org units are swimlanes, events ride
 on arrow labels and XOR branch labels, AND/OR is a fork, the process
 interface is an action preceded by an ``' aris: interface`` marker, and
-the governance tags live in the footer.
+the governance tags live in the footer — with the ids the interfaces link
+to, since a comment is invisible to pumllint and the footer is what
+``pumllint trace`` reads.
 """
 
 from __future__ import annotations
@@ -209,6 +211,9 @@ class _Emitter:
         self.out(0, f"@startuml {name or slug(p.name)}")
         self.out(0, f"title {p.name}")
         parts = ([f"owner: {p.owner}"] if p.owner else []) + [f"ARIS process {p.id}"]
+        refs = p.interface_refs()
+        if refs:
+            parts.append("interfaces: " + ", ".join(refs))
         self.out(0, "footer " + " — ".join(parts))
         self.out(0, "")
         first = self._first_action(s.blocks)

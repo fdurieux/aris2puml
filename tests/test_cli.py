@@ -228,6 +228,51 @@ def test_an_unwritable_report_path_is_an_output_error(tmp_path):
     assert rc == 2 and "cannot write report" in err
 
 
+# --- roadmap B4: the manifest --------------------------------------------------
+
+ENQUIRY = (
+    '{"process": {"id": "PROC-0051", "name": "Handle customer enquiry", "owner": "Sales"}, "nodes": ['
+    '{"id": "e", "kind": "event", "name": "Enquiry received"},'
+    '{"id": "f", "kind": "function", "name": "Answer enquiry"},'
+    '{"id": "x", "kind": "event", "name": "Enquiry answered"}],'
+    '"edges": [{"from": "e", "to": "f"}, {"from": "f", "to": "x"}]}'
+)
+
+
+def test_manifest_lists_the_converted_processes_and_the_ids_their_interfaces_link_to(tmp_path):
+    m = tmp_path / "m.json"
+    rc, out, err = _run([str(FIXTURES / "order_to_cash.json"), "-o", str(tmp_path / "out"),
+                         "--manifest", str(m)])
+    assert rc == 0 and err == "" and f"wrote {m.as_posix()}" in out
+    assert json.loads(m.read_text(encoding="utf-8")) == [
+        {"id": "PROC-0042", "name": "Order to cash",
+         "output": (tmp_path / "out" / "order-to-cash.puml").as_posix(),
+         "interfaces": ["PROC-0051"]}
+    ]
+
+
+def test_manifest_leaves_a_refused_process_out_and_the_exit_code_alone(tmp_path):
+    bad = tmp_path / "u.json"
+    bad.write_text(
+        '{"process": {"id": "PROC-0051", "name": "U"}, "nodes": ['
+        '{"id": "e", "kind": "event", "name": "S"}, {"id": "f", "kind": "function", "name": "F"},'
+        '{"id": "a", "kind": "function", "name": "A"}, {"id": "b", "kind": "function", "name": "B"}],'
+        '"edges": [{"from": "e", "to": "f"}, {"from": "f", "to": "a"}, {"from": "f", "to": "b"}]}',
+        encoding="utf-8",
+    )
+    m = tmp_path / "m.json"
+    rc, _, err = _run([str(bad), str(FIXTURES / "order_to_cash.json"), "-o", str(tmp_path / "out"),
+                       "--report", str(tmp_path / "s.json"), "--manifest", str(m)])
+    assert rc == 2 and "[PROC-0051]" in err
+    assert [p["id"] for p in json.loads(m.read_text(encoding="utf-8"))] == ["PROC-0042"]
+
+
+def test_an_unwritable_manifest_path_is_an_output_error(tmp_path):
+    rc, _, err = _run([str(FIXTURES / "order_to_cash.json"), "-o", str(tmp_path),
+                       "--manifest", str(tmp_path / "no" / "such" / "dir" / "m.json")])
+    assert rc == 2 and "cannot write manifest" in err
+
+
 # --- the cross-repository pin: pumllint over the converter's output ----------
 
 pumllint = pytest.importorskip("pumllint")
@@ -246,3 +291,31 @@ def test_draft_epc_reproduces_the_guide_findings(tmp_path):
     assert rc == 1
     findings = sorted(re.findall(r"\[([A-Z]+\d+)/", out))
     assert findings == ["ACT002", "ACT003", "ACT005", "ACT005", "ACT006", "ACT006", "ACT006", "GEN006", "GEN007"]
+
+
+def _trace(out_dir, manifest, *extra):
+    from pumllint.cli import main as pumllint_main
+    o, e = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(o), contextlib.redirect_stderr(e):
+        rc = pumllint_main(["trace", str(out_dir), "--requirements", str(manifest),
+                            "-c", str(CONVENTIONS), "-f", "json", *extra])
+    return rc, json.loads(o.getvalue())
+
+
+def test_trace_over_the_manifest_reports_a_referenced_process_with_no_diagram(tmp_path):
+    """The process-hierarchy check with no rule behind it: each footer cites
+    its own id and its interfaces' targets, the manifest is the inventory,
+    and an interface whose target has no diagram is an unknown reference."""
+    out, m = tmp_path / "out", tmp_path / "m.json"
+    assert _run([str(FIXTURES / "order_to_cash.json"), "-o", str(out), "--manifest", str(m)])[0] == 0
+    rc, doc = _trace(out, m, "--fail-on-unknown-ref")
+    assert rc == 1
+    assert [u["id"] for u in doc["unknownReferences"]] == ["PROC-0051"]
+    assert [(r["id"], r["covered"]) for r in doc["requirements"]] == [("PROC-0042", True)]
+    # convert the referenced process alongside, and the reference resolves
+    (tmp_path / "enquiry.json").write_text(ENQUIRY, encoding="utf-8")
+    assert _run([str(FIXTURES / "order_to_cash.json"), str(tmp_path / "enquiry.json"),
+                 "-o", str(out), "--manifest", str(m)])[0] == 0
+    rc, doc = _trace(out, m, "--fail-on-unknown-ref", "--fail-on-uncovered")
+    assert rc == 0 and doc["unknownReferences"] == []
+    assert doc["summary"]["coveredCount"] == 2 and doc["summary"]["diagramCount"] == 2
