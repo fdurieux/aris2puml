@@ -139,14 +139,18 @@ the three tests that lint the converter's output).
 
 ```bash
 pip install -e ".[test,check]"            # both extras; CI installs exactly this
-python -m pytest -q                       # 134 tests with pumllint installed. Without
-                                          # it: "109 passed, 4 skipped" - and each skip
-                                          # is a WHOLE MODULE (test_cli, test_lanes,
-                                          # test_notes, test_docs_flags: 25 tests never
-                                          # collected, the cross-repo pin and the docs
-                                          # gate among them), so a green run with 4
-                                          # skips has linted nothing; install [check]
-                                          # before trusting a full-suite claim
+python -m pytest -q                       # "134 passed, 1 skipped" with pumllint
+                                          # installed: the skip is test_real.py, the
+                                          # private-fixture module, whole, until
+                                          # tests/fixtures/real/ holds an export.
+                                          # Without pumllint: "109 passed, 5 skipped" -
+                                          # and each skip is a WHOLE MODULE (test_cli,
+                                          # test_lanes, test_notes, test_docs_flags,
+                                          # test_real: 25 tests never collected, the
+                                          # cross-repo pin and the docs gate among
+                                          # them), so a green run with 5 skips has
+                                          # linted nothing; install [check] before
+                                          # trusting a full-suite claim
 
 aris2puml in.json -o out/                 # one .puml per process
 aris2puml --from epml SAPModels.epml -o out/          # every EPC in an EPML document
@@ -220,6 +224,13 @@ repositories sit side by side (roadmap item D1 automates this).
 - **The "no entry" refusal bucket is empty on SAP.** The three cases
   turned out to be a loop-header misclassification, fixed under B1. Do
   not build an argument on that bucket.
+- **The private fixture is `tests/fixtures/real/`**, git-ignored except for
+  its README, never committed (A1, 2026-09-06: the adopter's processes
+  cannot be committed; a private fixture counts toward 1.0.0).
+  `tests/test_real.py` proves every export there round-trips and lints
+  clean, and skips as a whole module while the directory is empty. What
+  reaches the repository is a census row in the corpus README, measured
+  first. Do not put a synthetic export there to make the module run.
 - **The nine-model corpus is four files in git plus five fetched.** Tests
   needing the SAP five skip when `sap/` is absent; run `fetch_sap.py`
   before measuring anything SAP-related. The four in git are BPMAI models

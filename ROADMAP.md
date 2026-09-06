@@ -114,6 +114,16 @@ Two rules that follow from the pin to pumllint:
   private set (converted count, refusal buckets, sidecar counts), written
   after it was measured, and the maintainer's word that the three
   round-trip. See the version plan's read note of this date.*
+  *2026-09-06, later still: the private-fixture harness is scaffolded.
+  `tests/fixtures/real/` is git-ignored except for its README;
+  `tests/test_real.py` reads every `*.json` there as version-1 JSON and
+  runs each file through `--check -c tests/fixtures/conventions.toml`,
+  asserting no refusal (exit 2, the node named) and no finding (exit 1) --
+  the 0.2.0 criterion per process. The module skips as a whole while the
+  directory is empty, and without pumllint, so the suite reads "134 passed,
+  1 skipped" until an export lands. The corpus README gained *The private
+  set* with no row: nothing measured yet. A1b's gate is unchanged -- the
+  harness proves nothing until the script has run in an ARIS.*
 - [x] **A2. Multiple start events** *(2026-09-04)* — shipped as *entry
   regions* plus *mid-flow triggers*. Entry region: start events grouped by
   the join each reaches, following the post-dominator tree, into nested
