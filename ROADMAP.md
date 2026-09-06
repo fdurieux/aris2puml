@@ -88,6 +88,22 @@ Two rules that follow from the pin to pumllint:
   — two XOR outcomes converging on the approve/reject action — a modelling
   defect per B1's 2026-09-06 entry, so `--diagnose` is the answer, not a
   converter change.*
+  *2026-09-06, decided by the maintainer: the adopter's credit processes
+  cannot be committed, in any form. A1's deliverable therefore changes
+  shape, not substance. What the item still delivers: the script fixed to
+  the adopter's ARIS version and method filter, and one real EPC that
+  round-trips — export → JSON → activity diagram → `--check` clean under
+  the guide's conventions, the 0.2.0 criterion as written. What it no
+  longer delivers: an export or a golden diagram in git. The fixture is
+  private, in the shape the SAP five already have — `tests/fixtures/real/`
+  git-ignored, populated by the adopter, every test that reads it skipping
+  when it is absent — and what reaches the repository is what the corpus
+  README already carries for the SAP set: a census row, refusal buckets,
+  the sidecar's counts, no names and no diagram. The 1.0.0 criterion,
+  "three real processes in the golden corpus", cannot be met by this
+  adopter's processes as written; whether a private fixture counts toward
+  it, or the golden corpus stays public and the criterion is re-read, is
+  the maintainer's call and is not taken here.*
 - [x] **A2. Multiple start events** *(2026-09-04)* — shipped as *entry
   regions* plus *mid-flow triggers*. Entry region: start events grouped by
   the join each reaches, following the post-dominator tree, into nested
