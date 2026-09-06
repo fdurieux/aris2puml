@@ -1,125 +1,200 @@
-# Working on aris2puml
+# Working in this repository (agent pickup point)
 
-## Working in this repository (agent pickup point)
+Converter: ARIS EPC exports (a small notation-neutral JSON, or EPML) →
+one PlantUML activity diagram per process → pumllint's conventions gate.
+The core discipline: **the converter makes the EPC checkable, it never
+makes it pass.** Defects pass through for pumllint to report, and an EPC
+that does not reduce to nested single-entry, single-exit blocks is refused
+with the node named. Every accepted shape is backed by a fixture from a
+real model collection and a census figure, never by imagination.
 
-Read, in this order, before touching anything:
+## Read in this order when resuming
 
-1. `README.md` — what goes in (the version-1 JSON), what comes out (the
-   mapping table), what is refused and why.
-2. `ROADMAP.md` — the status baseline at the top, the arcs with their
-   gates, the **Never** list, and the version plan at the bottom. Work is
-   organised by roadmap item; find the item your task belongs to and read
-   its dated log entries, which record what was measured and decided.
-3. `tests/fixtures/corpus/README.md` — the nine real EPCs, what each one
-   does today, and the census figures every number in the docs comes from.
+1. `ROADMAP.md` — status baseline at the top, the arcs with their gates,
+   the **Never** list, the version plan at the bottom. Work is organised
+   by roadmap item: find the item your task belongs to and read its dated,
+   italicised log entries, which record what was measured and decided.
+2. `README.md` — what goes in (the version-1 JSON), what comes out (the
+   mapping table, one row per EPC element, with the pumllint rule that
+   checks it), what is refused and why, the sidecar, `--strict`,
+   `--diagnose`.
+3. `tests/fixtures/corpus/README.md` — the nine real EPCs, what each does
+   today, the census columns every figure in the docs comes from, and the
+   licence reasons five of them are fetched rather than committed.
+4. When the task touches the structuring pass or a reader: the fixtures
+   before the code — `tests/test_structure.py`, `tests/test_loops.py`,
+   `tests/test_entry.py`, then `aris2puml/structure.py`.
+5. pumllint's `docs/business-processes.md` §2 — the mapping table this
+   repository implements line for line; a mapping change starts there.
 
-Then, when the task touches the structuring pass or a reader, look at how
-the fixtures exercise it before reading the code: `tests/test_structure.py`,
-`tests/test_loops.py`, `tests/test_entry.py`.
+## Iron rules
 
-Conventions for recording work:
-
-- A roadmap item is closed by ticking it and adding a dated, italicised
-  log entry under it saying what shipped and what was measured. Older
-  entries are history: append, do not rewrite, unless one states a fact
-  that was wrong when written — then correct it and say so in the commit.
-- A corpus figure (a percentage, a count of models) is written down only
-  after running `tools/corpus/census.py` or `--report` over the set it
-  describes. Never extrapolate one from an older figure.
-- A finding about the tools that lives in prose (a mapping-table row, a
-  refusal reason in the corpus table) is checked against the current CLI
-  before it is repeated anywhere.
-
-Iron rules — these are not judgement calls:
-
-- **No invented structure.** An EPC that does not reduce to nested
-  single-entry, single-exit blocks is refused, with the node named. Do
-  not add a "repair" path, a heuristic, or a best-effort layout, however
-  small the gap.
+- **No invented structure.** An EPC whose connectors do not reduce to
+  nested single-entry, single-exit blocks is refused, with the node named.
+  No "repair" path, no heuristic, no best-effort layout, however small the
+  gap. This is the tool's reason to exist and carries no re-litigation
+  clause.
 - **Defects are preserved, never repaired.** A missing end event, an
   unnamed XOR outcome, a noun-named function all pass through so pumllint
-  can report them. The converter makes the EPC checkable; it does not
-  make it pass.
-- **No linting and no EPC semantic checks in this repo.** Rules live in
-  pumllint. If a check is needed, it goes there, and the mapping table is
-  updated in both repositories.
+  can report them.
+- **No linting and no EPC semantic checks in this repository.** Rules
+  live in pumllint; event/function alternation and connector pairing are
+  ARIS's own checker's. A needed check goes to pumllint, and the mapping
+  table moves in both repositories in the same change.
 - **No EPC shape built from imagination.** A new accepted shape needs a
-  fixture from the corpus (or a real ARIS export) showing that modellers
-  draw it, and the census figure showing how often.
-- **Real-ARIS work is adopter-gated.** Items marked as gated on an
-  adopter with ARIS (A1b, the report script at runtime, C1) cannot be
-  closed by synthesising an export. Do not fake the fixture.
+  fixture from the corpus (or a real ARIS export) showing modellers draw
+  it, and the census figure saying how often.
+- **Real-ARIS work is adopter-gated.** Items gated on an adopter with ARIS
+  Architect (A1b, the report script at runtime; C1) cannot be closed by
+  synthesising an export. Do not fake the fixture.
 - **The JSON contract is version 1 and extends additively only.** A new
-  optional field or array keeps version 1; anything else is the 1.0.0
-  decision in the version plan and belongs to the maintainer.
+  optional field or array keeps version 1 (the `data` array under B3 is
+  the precedent). Anything else is the 1.0.0 decision in the version plan
+  and belongs to the maintainer.
+- **A corpus figure is written down only after it was measured** by
+  `tools/corpus/census.py` or `--report` over the set it describes. Never
+  extrapolate one from an older figure or from a subset.
+- **Roadmap log entries are appended, not rewritten.** Close an item by
+  ticking it and adding a dated entry saying what shipped and what was
+  measured. Correct an older entry only when it states a fact that was
+  wrong when written, and say so in the commit.
+- **Documentation moves with the work.** A change to what converts, what
+  is refused, or what the sidecar counts updates `README.md`, the corpus
+  README table, and the ROADMAP entry in the same commit.
 - **Re-litigating a "Never" is the maintainer's decision**, taken on the
-  clause recorded next to it. An agent may point at the clause; it may
-  not act on it.
+  clause recorded beside it. An agent may point at the clause; it may not
+  act on it.
+
+## Model & effort selection (advise before starting a task)
+
+Every session picks a **model** and a **reasoning effort**. State the pair
+a task wants before starting it, and again when the work changes shape
+mid-session — the owner switches with `/model` (model), `/config`
+(effort) and `/fast` (fast mode). The pair is a recommendation, never a
+silent downgrade: cost/latency trades are the owner's call.
+
+Effort is `low | medium | high | xhigh | max`. `xhigh` is Claude Code's
+default and the best setting for most coding and agentic work on the
+5-family; `high` is the quality/token sweet spot; `max` is for
+"correctness matters more than cost"; `low` is for subagents and simple
+mechanical steps. Haiku 4.5 has no effort knob. Context: 1M on Fable 5.1
+/ Opus 5 / Sonnet 5, 200K on Haiku 4.5. API list price per 1M in/out —
+Fable 5.1 $10/$50, Opus 5 $5/$25, Sonnet 5 $2/$10, Haiku 4.5 $1/$5 — so
+an Opus 5 escalation costs ~2.5x a Sonnet 5 run and far less than one
+invented structure shipped to a corpus of 4 332 models.
+
+| Task | Model @ effort | Why |
+| --- | --- | --- |
+| The structuring pass — `structure.py`, entry regions, loop shapes, post-dominators, a new refusal | Opus 5 @ `xhigh` | Graph algorithms with refusal semantics; the failure mode is silently inventing structure, which no test catches until the next census. |
+| A contract change — the JSON, the sidecar shape, the mapping table, a refusal message's wording | Opus 5 @ `xhigh`–`max` | Cross-repository contract; reason it through against pumllint's parser and docs before the first edit. |
+| A new reader (Arc C) or the report script (A1) once its gate has fired | Opus 5 @ `xhigh` | Contract work under adopter evidence you cannot regenerate. |
+| Long-horizon design where being wrong costs days — process hierarchy (B4), variant handling, the 1.0.0 freeze | Fable 5.1 @ `high`–`xhigh` | Give the whole spec up front and keep the prompt un-prescriptive. |
+| Emitter or reader change with a golden fixture to match | Sonnet 5 @ `high` | Byte-for-byte expected output gives a tight loop; escalate if the golden must move. |
+| Corpus census or measurement runs (SAP, BPMAI), corpus README columns | Sonnet 5 @ `medium`–`high` | Wall clock and bookkeeping; record the numbers, then stop. |
+| Docs sync, log-entry correction, README wording, PR-to-green babysitting | Sonnet 5 @ `medium` | The facts come from running the CLI; the writing is short. |
+| Read-only lookups: where a refusal is raised, what a fixture contains | Sonnet 5 @ `high`, Haiku 4.5 for a one-shot | Haiku's 200K context will not hold a corpus run's output. |
+| Roadmap decisions, "Never" re-litigation, version bumps | — | Not an agent task; put the case to the maintainer. |
+
+Standing rules:
+
+- **Never downgrade for cost on structure-touching work.** Anything that
+  can change what converts, what is refused, or a golden diagram runs at
+  Opus 5 `xhigh` or above. Say when a task has crossed into that
+  territory mid-session instead of pressing on.
+- **Escalate on the second miss, don't grind.** A step that failed twice
+  at Sonnet 5 is a signal to re-run at Opus 5 `xhigh` with the full task
+  spec restated, not to try a third variation.
+- **Heavy output eats context.** A BPMAI-wide census, a 4 332-file
+  conversion log or a `--report` sidecar over the whole set belongs on a
+  1M-context model, or behind a subagent that reads it and reports the
+  conclusion.
 
 ## Environment & commands
 
-Python 3.11 or 3.12, no runtime dependencies. Two optional extras:
-`test` (pytest) and `check` (the pinned pumllint floor, used by `--check`
-and by the three tests that lint the converter's output).
+Python 3.11 or 3.12, no runtime dependencies. Two optional extras: `test`
+(pytest) and `check` (the pinned pumllint floor, used by `--check` and by
+the three tests that lint the converter's output).
 
 ```bash
 pip install -e ".[test,check]"            # both extras; CI installs exactly this
-python -m pytest -q                       # 108 tests; 3 skip when pumllint is absent
+python -m pytest -q                       # 108 tests; 3 SKIP when pumllint is absent
+                                          # (test_cli, test_lanes, test_notes) - a
+                                          # green run with 3 skips has not linted
+                                          # the output; install [check] first
+
 aris2puml in.json -o out/                 # one .puml per process
-aris2puml --from epml SAPModels.epml -o out/
-aris2puml in.json -o out/ --check -c tests/fixtures/conventions.toml   # then lint
-aris2puml in.json -o out/ --report sidecar.json --strict --diagnose    # fidelity gate
-python tools/corpus/fetch_sap.py          # the five SAP EPCs, into tests/fixtures/corpus/sap/ (gitignored)
-python tools/corpus/census.py DIR         # convert-or-refuse tally over a directory of JSON
+aris2puml --from epml SAPModels.epml -o out/          # every EPC in an EPML document
+aris2puml in.json -o out/ --check -c tests/fixtures/conventions.toml
+                                          # then lint with the guide's config
+aris2puml in.json -o out/ --report sidecar.json       # fidelity sidecar: what was
+                                          # dropped, approximated, refused
+aris2puml in.json -o out/ --strict        # approximations become refusals
+aris2puml in.json -o out/ --diagnose      # <name>.refused.puml: the EPC as a
+                                          # graph, offending node in red
+aris2puml in.json -o out/ --notes         # data objects as `note right`
+                                          # (off by default: GEN008 counts notes)
+aris2puml in.json -o -                    # stdout; refuses with --check/--report
+
+python tools/corpus/fetch_sap.py          # the five SAP EPCs into
+                                          # tests/fixtures/corpus/sap/ (gitignored;
+                                          # CC BY-NC-SA, never committed)
+python tools/corpus/epml_to_json.py SAP.epml DIR      # whole collection to JSON
+python tools/corpus/bpmai_to_json.py bpmai/models DIR # same for the BPMAI set
+python tools/corpus/census.py DIR         # convert-or-refuse tally, refusals
+                                          # bucketed by reason; the source of
+                                          # every corpus figure in the docs
 ```
 
-`out/`, `sidecar.json` and anything else you write are not gitignored:
-write scratch output outside the repository or delete it before
-committing. `tests/fixtures/corpus/sap/` is gitignored on purpose (licence).
+Scratch output (`out/`, `sidecar.json`) is not gitignored: write it outside
+the repository or delete it before committing.
 
 CI is `.github/workflows/tests.yml`: the pytest matrix on ubuntu and
-windows for 3.11 and 3.12, then the console-script smoke step. Windows is
-in the matrix because the CLI writes diagrams with `newline="\n"` and
-prints forward-slash paths; keep both when touching `cli.py`.
+windows for 3.11 and 3.12, then the console-script smoke step
+(`aris2puml tests/fixtures/order_to_cash.json -o out --check -c
+tests/fixtures/conventions.toml`). Windows is in the matrix because the
+CLI writes diagrams with `newline="\n"` and prints forward-slash paths;
+keep both when touching `cli.py`.
 
-pumllint's floor is set in `pyproject.toml` (`check = ["pumllint>=0.33"]`)
-with a comment saying which rule needed the bump. Raise it only when the
-suite needs a newer rule, and say which in the comment. To test against
-pumllint `main` instead of the pinned release, install it from its
-checkout: `pip install -e ../pumllint` when the two repositories sit side
-by side.
+pumllint's floor is `check = ["pumllint>=0.33"]` in `pyproject.toml`, with
+a comment naming the rule that needed the bump. Raise it only when the
+suite needs a newer rule, and say which. To test against pumllint `main`
+rather than the pinned release: `pip install -e ../pumllint` when the two
+repositories sit side by side (roadmap item D1 automates this).
 
 ## Context that saves you an investigation
 
-- **Refusals stop at the first defect.** `structure()` raises on the first
-  `StructureError` it meets walking from the start, so a model can carry
-  several defects and `--diagnose` shows only the first. Both mortgage
-  corpus models refuse on an unstructured XOR join in the credit
-  decision; the AND-split-joined-at-OR behind it is real and unreached.
+- **Refusals stop at the first defect.** `structure()` raises on the
+  first `StructureError` it meets walking from the start, so a model can
+  carry several and `--diagnose` shows only the first. Both mortgage
+  corpus models refuse on an unstructured XOR join inside the credit
+  decision (two XOR outcomes converging on one reject/approve action);
+  the AND-split-joined-at-OR behind it is real and unreached.
 - **The interface `ref` goes nowhere yet.** The emitter writes it as
   `' aris: interface <ref>`, a comment; pumllint's parser drops every
   comment line, so neither its rules nor `pumllint trace` ever see it.
   `--diagnose` draws it. Cross-process resolution is roadmap item B4
-  (`--manifest`), not a pumllint rule.
+  (`--manifest`), and any variant-of relation would ride the same
+  manifest — neither is a pumllint rule.
 - **The version-1 JSON edges are `from`/`to`**, not `src`/`dst` (the
   in-memory `Edge` uses `src`/`dst`). A quick script over the fixtures
   needs the former.
 - **The process carries one attribute: `owner`.** Product, segment,
-  channel or any other facet would be an additive contract change plus
-  the report script, not an emitter tweak.
-- **The README's corpus figures are dated.** "32 % of BPMAI" is the
+  channel or any other facet is an additive contract change plus the
+  report script, not an emitter tweak.
+- **The README's corpus paragraph is dated.** "32 % of BPMAI" is the
   pre-A2 census; the current columns (74.0 % SAP, 46.0 % BPMAI, 40.5 %
   under `--strict`) are in `tests/fixtures/corpus/README.md`. Quote that
-  file, not the README paragraph.
+  file.
+- **The "no entry" refusal bucket is empty on SAP.** The three cases
+  turned out to be a loop-header misclassification, fixed under B1. Do
+  not build an argument on that bucket.
 - **The nine-model corpus is four files in git plus five fetched.** Tests
-  that need the SAP five skip when `sap/` is absent; run `fetch_sap.py`
-  before measuring anything SAP-related.
+  needing the SAP five skip when `sap/` is absent; run `fetch_sap.py`
+  before measuring anything SAP-related. The four in git are BPMAI models
+  drawn in Signavio — EPCs by notation only, not ARIS artefacts.
 - **No public ARIS AML export exists.** ROADMAP item A1b records the
   search (ARIS Community, Zenodo, figshare, 4TU, the two DTD-only
   projects). Do not repeat it; the gate is an adopter with Architect.
-- **The "no entry" refusal is empty on SAP.** The three cases turned out
-  to be a loop-header misclassification, fixed under B1. Do not build an
-  argument on that bucket.
 - **The sidecar and the census count the same thing by different routes**
   and must agree on `converted`; a change to one is checked against the
   other over the corpus.
@@ -127,27 +202,13 @@ by side.
   mapping change starts in pumllint's `docs/business-processes.md` §2 and
   `docs/process-demo/`, then lands here as a regenerated
   `tests/expected/order-to-cash.puml`.
-
-## Model & effort selection (advise before starting a task)
-
-State, in the first message of a task, which model tier and effort the
-task needs and whether the current session fits. If the session is
-under-sized for the work, say so before starting rather than after.
-
-| Task | Model tier | Effort | Why |
-|---|---|---|---|
-| Docs sync, corpus-table or log-entry correction, README wording | Haiku or Sonnet | low | The facts come from running the CLI; the writing is short |
-| Emitter or reader change with a golden fixture to match | Sonnet | medium | Byte-for-byte expected output gives a tight feedback loop |
-| Corpus census or measurement runs (SAP, BPMAI) | Sonnet | medium | Wall clock and bookkeeping, not reasoning; record the numbers, then stop |
-| Structuring pass: `structure.py`, entry regions, loops, post-dominators | Opus or above | high | Graph algorithms with refusal semantics; the failure mode is silently inventing structure |
-| Anything that changes the JSON contract, the sidecar shape, or the mapping table | Opus or above | high | Cross-repo contract; must be reasoned through against pumllint's parser and docs |
-| A new reader (Arc C) | Opus or above | high | Gated on an adopter first; if the gate has fired, it is contract work |
-| Roadmap decisions, "Never" re-litigation, version bumps | — | — | Not an agent task; put the case to the maintainer |
-
-Effort means the reasoning budget the harness is set to, not how long to
-spend. A low-effort session on a structuring change will pass the tests
-and still be wrong on the next corpus; a high-effort session on a docs fix
-is money spent on nothing.
+- **`--strict` is a set membership, not a string match**: it refuses the
+  notes the structuring pass records (`APPROXIMATED` in `model.py` plus
+  the two `backward` drops). Reader-level drops are the contract and stay
+  out; adding a note code is what widens `--strict`.
+- **Hosted sessions push through a branch-scoped git proxy.** Pushes to
+  the designated branch work; the GitHub MCP tools open and merge PRs.
+  Delete-branch-on-merge is on, so a merged PR's branch cleans itself up.
 
 ## Tests
 
@@ -158,17 +219,14 @@ aris2puml tests/fixtures/order_to_cash.json -o out --check -c tests/fixtures/con
 ```
 
 The second line is the suite; the third is the end-to-end smoke CI runs
-after it. `check` pulls the pinned pumllint floor (`pumllint>=0.33`), which
-the suite lints the converter's output with — the two repositories share
-one mapping table, and `tests/test_golden.py` pins it byte for byte against
+after it. `tests/test_golden.py` pins the emitter byte for byte against
 pumllint's `docs/process-demo/order_to_cash.puml` with its comment lines
 stripped. If a golden diagram changes on purpose, regenerate the expected
 file and say so in the commit; never edit the expected file by hand.
 
 After a change to the structuring pass or a reader, re-run the corpus
 figures if they move, and update `tests/fixtures/corpus/README.md` and the
-matching ROADMAP entry together — the census (`tools/corpus/census.py`)
-and the `--report` sidecar must agree on `converted`.
+matching ROADMAP entry together.
 
 ## Pull requests
 
@@ -182,9 +240,8 @@ merge on a red or pending run.
 - **Exit codes** `0` / `1` / `2`: converted; `--check` found issues; an
   input could not be read or structured, or usage error. A refusal is
   always `2`, `--strict` included.
-- **The version-1 JSON contract** (`README.md` "The intermediate JSON (version 1)"). Extend it
-  additively only — a new optional array or field, version stays 1. A
-  breaking change is the 1.0.0 decision in ROADMAP.md, not a patch.
+- **The version-1 JSON contract** (`README.md` "The intermediate JSON
+  (version 1)"). Additive extensions only; a break is the 1.0.0 decision.
 - **The sidecar shape** (`--report`, `aris2puml/report.py` docstring):
   versioned, and its `converted` count must equal the census's.
 - **The mapping table** in README.md "What comes out" mirrors pumllint's
@@ -192,47 +249,14 @@ merge on a red or pending run.
 - **Refusal messages name the node id** and the reason verbatim; the
   sidecar and `--diagnose` read the ids from `StructureError`, never from
   the prose. Do not reword a refusal without checking both consumers.
-- **Defects are preserved, never repaired**, and **no invented structure**:
-  an unstructured EPC is refused, not bent into blocks. Both are in
-  ROADMAP.md's "Never" list with their re-litigation clauses.
 - **Output file names are deterministic** and independent of input order:
   a duplicate slug gets the process id appended.
 
-## Working on pumllint (the companion repository)
+## Changes that span pumllint
 
-A mapping change, a new construct the parser must model, or a rule the
-converter's output needs usually touches pumllint too. Its own `CLAUDE.md`
-governs there; the essentials, so a session spanning both repositories
-does not have to open it first:
-
-**Tests.** Both must pass:
-
-```bash
-python tests/run_tests.py     # zero-dependency runner (stdlib only) — the promise the project makes
-python -m pytest              # the above plus the executable RULES.md spec (pytest-bdd)
-```
-
-Tests are plain assert functions, no fixtures, no third-party imports.
-After changing `RULES.md`, run `python tools/extract_features.py` or CI
-fails. After a deliberate scoring or reporter change, regenerate the
-published pilot artefacts (`docs/example-maturity-report.html`,
-`docs/example-badge.json`) with `pumllint score examples/`; a test
-compares them byte for byte.
-
-**Pull requests.** The same standing authorisation: open a PR, wait for CI
-to pass, then merge — no need to ask. Wait for the whole matrix including
-the `windows` job, the only one that exercises PowerShell argument
-handling and the Windows console codec. Never merge on red or pending.
-
-**Contracts, not details.** Exit codes `0` / `1` / `2` (the composite
-action and both pre-commit hooks depend on them; a new "nothing was
-checked" condition warns on stderr and keeps the exit code). Report
-shapes for `-f json` (lint, score, trace), pinned by the shipped JSON
-Schemas in `pumllint/schemas/`. Rule IDs, their kebab-case names and
-config keys. Reported file paths use forward slashes on every platform
-(compare against `Path.as_posix()`, never `str(path)`). All CLI output
-goes through `_out`/`_err` in `pumllint/cli.py`; a bare `print()`
-reintroduces the Windows crash those helpers exist to prevent.
-
-When a change lands in both repositories, merge pumllint's first and
-release it, then raise this repository's floor if the change needs it.
+pumllint's own `CLAUDE.md` governs there, with the same standing merge
+authorisation; read it before touching that repository. The cross-repo
+order: land and release the pumllint side first, then raise this
+repository's floor if the change needs it, then land the aris2puml side
+with the regenerated golden. Never leave the mapping table different in
+the two repositories at a merge.
