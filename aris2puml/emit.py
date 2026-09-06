@@ -53,6 +53,10 @@ class _Emitter:
             self.out(depth, f"  {item}")
         self.out(depth, "end note")
 
+    @staticmethod
+    def _label(label: str | None) -> str:
+        return f" ({label})" if label else ""
+
     def out(self, depth: int, text: str) -> None:
         self.lines.append("  " * depth + text)
 
@@ -129,10 +133,6 @@ class _Emitter:
         self.out(depth, f"' epc: external trigger at {t.join.id} ({t.join.kind})")
         self.out(depth, f"-> {label};")
 
-    @staticmethod
-    def _label(label: str | None) -> str:
-        return f" ({label})" if label else ""
-
     def decision(self, d: Decision, depth: int) -> None:
         if len(d.branches) == 2:
             a, b = d.branches
@@ -176,9 +176,15 @@ class _Emitter:
             self.out(depth, f"backward :{lp.backward.name};")
             self._note(depth, lp.backward.id)
             self.lane = None
+        # Each half only when the loop has that event: a bare `not` is
+        # rejected by PlantUML and `is not (X)` is mis-parsed by it, while
+        # `is (X)` alone and `not (X)` alone both mean what they say. A
+        # missing event stays missing — ACT003's business, not ours.
         tail = f"repeat while ({lp.condition})"
-        if lp.back_label or lp.exit_label:
-            tail += f" is{self._label(lp.back_label)} not{self._label(lp.exit_label)}"
+        if lp.back_label:
+            tail += f" is ({lp.back_label})"
+        if lp.exit_label:
+            tail += f" not ({lp.exit_label})"
         self.out(depth, tail)
         self.lane = None
         end = getattr(lp, "body_end", None)

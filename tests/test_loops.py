@@ -223,6 +223,38 @@ def test_a_connector_on_the_return_path_is_refused():
         structure(proc)
 
 
+def test_a_loop_whose_exit_has_no_event_gets_is_and_no_not():
+    """`repeat while (…) is (E) not` — a bare `not` — is rejected by
+    PlantUML. The exit label is missing, so the `not` half is too."""
+    proc = build(
+        [("e0", "event", "Started"), ("f0", "function", "Open it"), ("j", "xor"),
+         ("f1", "function", "Do it"), ("x", "xor"),
+         ("e2", "event", "Again"), ("f3", "function", "Finish it"), ("e3", "event", "Done")],
+        ["e0>f0", "f0>j", "j>f1", "f1>x", "x>e2", "e2>j", "x>f3", "f3>e3"],
+    )
+    (tail,) = [l for l in _lines(proc) if l.startswith("repeat while")]
+    assert tail == "repeat while (Again?) is (Again)"
+
+
+def test_a_loop_whose_back_edge_has_no_event_gets_not_and_no_is():
+    """`is not (X)` is accepted by PlantUML and mis-parsed: the condition
+    swallows the text. The back label is missing, so the `is` half is too."""
+    proc = build(
+        [("e0", "event", "Started"), ("f0", "function", "Open it"), ("j", "xor"),
+         ("f1", "function", "Do it"), ("x", "xor"), ("e3", "event", "Done")],
+        ["e0>f0", "f0>j", "j>f1", "f1>x", "x>j", "x>e3"],
+    )
+    (tail,) = [l for l in _lines(proc) if l.startswith("repeat while")]
+    assert tail == "repeat while (Done?) not (Done)"
+
+
+def test_no_loop_tail_ends_on_a_dangling_keyword():
+    for proc in (_rework_with_return_work(),):
+        for l in _lines(proc):
+            if l.startswith("repeat while"):
+                assert not l.endswith((" is", " not"))
+
+
 def test_the_repeat_shape_still_emits_repeat():
     """v0.1.0's loop: the split is below the header, not the header itself."""
     proc = build(
