@@ -208,8 +208,10 @@ Two rules that follow from the pin to pumllint:
   reports exactly the 41 loops with neither label and the 10 with one
   missing. The floor is `pumllint>=0.33`.*
   *The SAP census moves 445 → 447 of 604. Neither mortgage model converts
-  even now: both refuse on an AND split that joins at an OR, which is a
-  real defect and not a loop shape.*
+  even now: both refuse on the XOR join before their approve/reject
+  action, fed by outcomes of two different XOR splits — an unstructured
+  join, and a real defect, not a loop shape. Behind it, the AND split
+  after approval joins at an OR, a second defect the walk never reaches.*
 - [x] **B2. `--strict`** *(2026-09-05)* — refuse OR connectors and any
   other approximation instead of warning, for teams gating on conversion
   fidelity. Small. *2026-09-04: folded mid-flow triggers (A2) are the
