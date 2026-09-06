@@ -87,6 +87,15 @@ class Process:
     def data_of(self, node_id: str) -> list[Data]:
         return [d for d in self.data if d.node == node_id]
 
+    def interface_refs(self) -> list[str]:
+        """The ids of the processes this one's interfaces link to — node
+        order, deduplicated; an interface with no link contributes nothing."""
+        refs: list[str] = []
+        for n in self.nodes:
+            if n.kind == "interface" and n.ref and n.ref not in refs:
+                refs.append(n.ref)
+        return refs
+
     def node(self, node_id: str) -> Node:
         for n in self.nodes:
             if n.id == node_id:

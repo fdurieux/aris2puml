@@ -117,10 +117,13 @@ the three tests that lint the converter's output).
 
 ```bash
 pip install -e ".[test,check]"            # both extras; CI installs exactly this
-python -m pytest -q                       # 108 tests; 3 SKIP when pumllint is absent
-                                          # (test_cli, test_lanes, test_notes) - a
-                                          # green run with 3 skips has not linted
-                                          # the output; install [check] first
+python -m pytest -q                       # 133 tests with pumllint installed. Without
+                                          # it: "109 passed, 3 skipped" - and each skip
+                                          # is a WHOLE MODULE (test_cli, test_lanes,
+                                          # test_notes: 24 tests never collected, the
+                                          # cross-repo pin among them), so a green run
+                                          # with 3 skips has linted nothing; install
+                                          # [check] before trusting a full-suite claim
 
 aris2puml in.json -o out/                 # one .puml per process
 aris2puml --from epml SAPModels.epml -o out/          # every EPC in an EPML document
@@ -133,7 +136,10 @@ aris2puml in.json -o out/ --diagnose      # <name>.refused.puml: the EPC as a
                                           # graph, offending node in red
 aris2puml in.json -o out/ --notes         # data objects as `note right`
                                           # (off by default: GEN008 counts notes)
-aris2puml in.json -o -                    # stdout; refuses with --check/--report
+aris2puml in.json -o out/ --manifest m.json          # converted processes + interface
+                                          # targets, the inventory for
+                                          # `pumllint trace --requirements m.json`
+aris2puml in.json -o -                    # stdout; refuses with --check/--diagnose
 
 python tools/corpus/fetch_sap.py          # the five SAP EPCs into
                                           # tests/fixtures/corpus/sap/ (gitignored;
@@ -169,12 +175,14 @@ repositories sit side by side (roadmap item D1 automates this).
   corpus models refuse on an unstructured XOR join inside the credit
   decision (two XOR outcomes converging on one reject/approve action);
   the AND-split-joined-at-OR behind it is real and unreached.
-- **The interface `ref` goes nowhere yet.** The emitter writes it as
-  `' aris: interface <ref>`, a comment; pumllint's parser drops every
-  comment line, so neither its rules nor `pumllint trace` ever see it.
-  `--diagnose` draws it. Cross-process resolution is roadmap item B4
-  (`--manifest`), and any variant-of relation would ride the same
-  manifest — neither is a pumllint rule.
+- **The interface `ref` is carried twice, and only one copy is checkable.**
+  The `' aris: interface <ref>` comment is for readers and `--diagnose`;
+  pumllint's parser drops every comment line. The footer's
+  `— interfaces: <ref>, …` suffix is what GEN007 and `pumllint trace` read,
+  and `--manifest` plus `trace --fail-on-unknown-ref` is the hierarchy
+  check (B4, shipped 2026-09-06). There is no rule behind it, and a
+  variant-of relation would ride the same manifest when the contract
+  grows one.
 - **The version-1 JSON edges are `from`/`to`**, not `src`/`dst` (the
   in-memory `Edge` uses `src`/`dst`). A quick script over the fixtures
   needs the former.

@@ -53,6 +53,10 @@ def _parser() -> argparse.ArgumentParser:
     ap.add_argument("--report", metavar="PATH",
                     help="write a fidelity sidecar (JSON) here: what each process dropped, "
                          "approximated or refused; a refusal is recorded and the run goes on")
+    ap.add_argument("--manifest", metavar="PATH",
+                    help="write the converted processes and the ids their interfaces link "
+                         "to here (JSON array): the inventory `pumllint trace --requirements` "
+                         "reads, so a referenced process with no diagram is reported")
     ap.add_argument("--version", action="version", version=f"aris2puml {__version__}")
     return ap
 
@@ -141,7 +145,8 @@ def convert(inputs: list[str], fmt: str, out: str, collect: bool = False,
                      f"{d.id}: {d.kind} {d.name!r} on {d.node} is not drawn without --notes")
                 for d in proc.data]
             report.converted(path, proc.id, proc.name, target,
-                             dropped.get(proc.id, []) + omitted + _flagged(proc) + s.notes)
+                             dropped.get(proc.id, []) + omitted + _flagged(proc) + s.notes,
+                             proc.interface_refs())
     return report
 
 
@@ -191,6 +196,13 @@ def main(argv: list[str] | None = None) -> int:
             print(f"aris2puml: cannot write report: {exc}", file=sys.stderr)
             return 2
         print(f"wrote {Path(args.report).as_posix()}")
+    if args.manifest:
+        try:
+            report.write_manifest(args.manifest)
+        except OSError as exc:
+            print(f"aris2puml: cannot write manifest: {exc}", file=sys.stderr)
+            return 2
+        print(f"wrote {Path(args.manifest).as_posix()}")
     if report.any_refused:
         return 2
     if args.check:

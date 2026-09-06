@@ -246,10 +246,27 @@ Two rules that follow from the pin to pumllint:
   fixture; the real source is ARIS, adopter-gated like the script. Without
   `--notes` every data object is a `data-omitted` record in the sidecar, so
   `--report` now measures what the flag would add.*
-- [ ] **B4. Process hierarchy** — a `--manifest` that writes the set of
+- [x] **B4. Process hierarchy** *(2026-09-06)* — a `--manifest` that writes the set of
   converted processes and their interface references, so pumllint lints
   them as one batch (XD004 across processes) and a missing referenced
   process is reported. Medium.
+  *Shipped in its cheapest form, pulled forward on the 2026-09-06 review
+  of the two repositories against a process-architecture brief: the
+  interface's target id was written only as the `' aris: interface`
+  comment, which pumllint's parser drops, so nothing downstream could
+  ever resolve it. Now the footer also carries `— interfaces: <ref>, …`
+  (node order, deduplicated; pumllint's §2 mapping row moved with it,
+  pumllint#139), each converted sidecar record lists the same ids, and
+  `--manifest PATH` writes the converted processes as the JSON array
+  `pumllint trace --requirements` reads. No rule and no new pumllint code:
+  `trace --fail-on-unknown-ref` over the manifest is the hierarchy check,
+  a refused process is left out of the manifest so a link to it is
+  reported, and the ARIS landscape passed as the inventory turns
+  `--fail-on-uncovered` into landscape conformance. `--check` was already
+  one pumllint invocation per run, so the XD004 half needed nothing. A
+  variant-of relation between processes, when the JSON contract grows one,
+  would ride the same manifest. The golden moves by its footer line only;
+  the corpus figures do not move (no kept model carries an interface).*
 - [x] **B5. Structure diagnostics** *(2026-09-05)* — on `StructureError`,
   write the partial diagram with the offending connector as a `#red` note
   so the modeller sees *where* to restructure, instead of an id on stderr.

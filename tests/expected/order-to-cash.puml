@@ -1,6 +1,6 @@
 @startuml order-to-cash
 title Order to cash
-footer owner: Sales Operations — ARIS process PROC-0042
+footer owner: Sales Operations — ARIS process PROC-0042 — interfaces: PROC-0051
 
 |Sales|
 start

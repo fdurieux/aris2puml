@@ -24,6 +24,8 @@ aris2puml corpus/*.json -o out/ --strict                # refuse what would be a
 aris2puml corpus/*.json -o out/ --diagnose              # + <name>.refused.puml for each refusal: where, drawn
 aris2puml corpus/*.json -o out/ --notes                 # + each function's documents and systems as a note
 aris2puml corpus/*.json -o out/ --no-lane "Owner TBD"   # label the lane of functions that have no org unit
+aris2puml corpus/*.json -o out/ --manifest manifest.json  # + the converted processes and their interface targets,
+                                                          #   the inventory `pumllint trace` reads
 ```
 
 Each process becomes `<process-name-slug>.puml`; when two processes in one
@@ -104,9 +106,9 @@ roadmap says when one would.
 | loop (back edge to an XOR join below the header) | `repeat … repeat while (Back event?) is (Back event) not (Exit event)` — each label only when the loop has that event | ACT003, ACT004 |
 | loop whose XOR both merges the retry and decides | `while (Back event?) is (Back event) … endwhile (Exit event)` | ACT003, ACT004 |
 | loop with one function on the return path | `repeat` … `backward :Function;` … `repeat while (…)`; events and the org unit there are dropped, with a warning | ACT006, ACT003, ACT004 |
-| process interface | `' aris: interface <ref>` then `:Name;` | ACT006 |
+| process interface | `' aris: interface <ref>` then `:Name;`, and `<ref>` in the footer (`— interfaces: <ref>, …`): the comment is for readers, the footer is what pumllint sees | ACT006; GEN007, `pumllint trace` |
 | information object, document, IT system on a function | nothing, by default; with `--notes`, one `note right` per function listing them (`document: Order form`, `system: ERP`, `input: …`) | GEN008 |
-| process name, id, owner | `@startuml <slug>`, `title`, `footer owner: … — ARIS process <id>` | GEN001/002/006/007 |
+| process name, id, owner | `@startuml <slug>`, `title`, `footer owner: … — ARIS process <id>` (then `— interfaces: …` when the process has any) | GEN001/002/006/007 |
 
 **Defects are preserved, not repaired.** A flow that ends on a function
 instead of an end event gets no `stop`, so pumllint's ACT002 reports the
@@ -181,6 +183,38 @@ the exit code is still `2` when anything was refused. Reader-level drops
 go into the sidecar only — they are the contract working as documented,
 not a per-run surprise — while the structuring pass's approximations and
 drops are also warned on stderr, as before.
+
+## Process hierarchy: `--manifest`
+
+A process interface is the one piece of cross-process structure an EPC
+carries. Its target's id rides in the footer, so `pumllint trace` can
+resolve it — and `--manifest manifest.json` writes the other half, the
+inventory: a JSON array of the converted processes, each with the ids its
+interfaces link to, in the form `trace --requirements` reads (objects with
+an `id`; the rest rides along):
+
+```json
+[{"id": "PROC-0042", "name": "Order to cash", "output": "out/order-to-cash.puml",
+  "interfaces": ["PROC-0051"]}]
+```
+
+```bash
+aris2puml exports/*.json -o out/ --manifest manifest.json
+pumllint trace out/ --requirements manifest.json -c conventions.toml --fail-on-unknown-ref
+```
+
+Every diagram cites its own id and its interfaces' targets, and the
+inventory is the set of diagrams, so the matrix reads as: an **unknown
+reference** is an interface whose target process has no diagram in the
+batch — missing from the export, or refused (a refused process is left
+out of the manifest on purpose, so a link to it is reported, not hidden);
+coverage is complete by construction. Pass the ARIS process landscape as
+the inventory instead of the manifest and `--fail-on-uncovered` names the
+landscape entries no diagram realises. `--check` already lints the run's
+diagrams as one batch, so pumllint's XD004 catches an org unit spelled
+two ways across processes without any of this.
+
+The same ids sit on each converted record of the sidecar (`interfaces`).
 
 ## Gating on fidelity: `--strict`
 
