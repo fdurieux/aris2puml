@@ -26,7 +26,7 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-check = ["pumllint>=0.32"]   # 0.32 is the first that name-checks `backward` actions
+check = ["pumllint>=0.33"]   # 0.33 is the first that reads a loop's outcome labels (ACT003)
 test = ["pytest>=7"]
 
 [project.scripts]

@@ -201,9 +201,12 @@ Two rules that follow from the pin to pumllint:
   `is not (X)` when the back edge has none (PlantUML accepts and
   mis-parses it: the condition swallows the text). Seven loops in six of
   the 1 994 converted BPMAI diagrams; all render now, and the missing
-  event stays missing, as it should. pumllint's `repeat while` regex reads
-  only the condition, so an eventless loop outcome is not yet an ACT003
-  finding — a gap for pumllint, noted here.*
+  event stays missing, as it should. pumllint's `repeat while` regex read
+  only the condition, so an eventless loop outcome was not an ACT003
+  finding; closed upstream the same day (pumllint#137, released as 0.33.0):
+  ACT003 now reads `is`/`not`/`endwhile` labels, and over the BPMAI set it
+  reports exactly the 41 loops with neither label and the 10 with one
+  missing. The floor is `pumllint>=0.33`.*
   *The SAP census moves 445 → 447 of 604. Neither mortgage model converts
   even now: both refuse on an AND split that joins at an OR, which is a
   real defect and not a loop shape.*
