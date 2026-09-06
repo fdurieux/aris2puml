@@ -104,6 +104,16 @@ Two rules that follow from the pin to pumllint:
   adopter's processes as written; whether a private fixture counts toward
   it, or the golden corpus stays public and the criterion is re-read, is
   the maintainer's call and is not taken here.*
+  *2026-09-06, later, decided by the maintainer: a private fixture counts
+  toward 1.0.0. The "three real processes in the golden corpus" criterion
+  is read as three real processes that round-trip and lint clean, wherever
+  their files live; the private `tests/fixtures/real/` set is the golden
+  corpus for them. Consequence written down: CI cannot attest that gate on
+  its own — the private suite runs only where the fixture is — so the
+  public evidence for 1.0.0 is the corpus README's census row for the
+  private set (converted count, refusal buckets, sidecar counts), written
+  after it was measured, and the maintainer's word that the three
+  round-trip. See the version plan's read note of this date.*
 - [x] **A2. Multiple start events** *(2026-09-04)* — shipped as *entry
   regions* plus *mid-flow triggers*. Entry region: start events grouped by
   the join each reaches, following the post-dominator tree, into nested
@@ -418,3 +428,11 @@ A2–A3, B2–B5 and C0 on top of 0.1.0 and waits on A1 and A4 alone. Whether
 that ships as 0.2.0 under the criterion as written, or the rows are
 renumbered, is the maintainer's decision; this table records the state,
 not the cut.*
+
+*Read 2026-09-06, later, on the 1.0.0 row: the adopter's processes cannot
+be committed (A1, this date), and the maintainer has decided that a
+private fixture counts. "Three real processes in the golden corpus" is
+therefore three real processes round-tripping and linting clean from the
+git-ignored `tests/fixtures/real/` set, evidenced publicly by the corpus
+README's census row for that set rather than by files in git. The row's
+text is left as written; this note is how it is read.*
