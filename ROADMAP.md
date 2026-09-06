@@ -195,6 +195,15 @@ Two rules that follow from the pin to pumllint:
   canonical rework loop with no entry at all. That was an A2 residual, not
   a loop-shape problem — it accounted for all three "no entry" refusals in
   the SAP set, which now resolve to their real state.*
+  *2026-09-06: the loop tail is written half by half. `repeat while (…)`
+  took ` is (back) not (exit)` whenever either label existed, which left a
+  bare `not` when the exit outcome has no event (PlantUML rejects it) and
+  `is not (X)` when the back edge has none (PlantUML accepts and
+  mis-parses it: the condition swallows the text). Seven loops in six of
+  the 1 994 converted BPMAI diagrams; all render now, and the missing
+  event stays missing, as it should. pumllint's `repeat while` regex reads
+  only the condition, so an eventless loop outcome is not yet an ACT003
+  finding — a gap for pumllint, noted here.*
   *The SAP census moves 445 → 447 of 604. Neither mortgage model converts
   even now: both refuse on an AND split that joins at an OR, which is a
   real defect and not a loop shape.*

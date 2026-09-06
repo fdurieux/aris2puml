@@ -180,11 +180,14 @@ finished structuring:*
 *2026-09-06, rendering:* every one of the 1 994 converted BPMAI diagrams
 was also checked with PlantUML (`-checkonly`, one file at a time). Before
 the no-lane lane, 126 with swimlanes but none before `start` failed, plus
-the models whose org unit has no name (`||`); after it, **1 993 of 1 994
-render**. The one left is a different defect — a `repeat while … not`
-whose exit label is empty, leaving a bare `not` — recorded for a
-follow-up. The SAP set has no org units at all, so its diagrams never had
-lanes to fail on.
+the models whose org unit has no name (`||`); after it, 1 993 of 1 994.
+The one left was a loop whose exit outcome has no event, emitted as
+`repeat while (…) is (E) not` with a bare `not`; the same check found six
+loops whose *back* edge has no event, emitted as `is not (X)`, which
+PlantUML accepts and mis-parses (the condition swallows the text). Since
+2026-09-06 each half of the tail is written only when the loop has that
+event, and **all 1 994 render**. The SAP set has no org units at all, so
+its diagrams never had lanes to fail on.
 
 The no-way-out row is a shape the structurer used to spin on rather
 than refuse: a connector whose only successor is itself, or a ring of
