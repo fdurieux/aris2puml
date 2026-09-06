@@ -194,14 +194,15 @@ the converter made. `--strict --report` is the pair for a team gating on
 fidelity: the sidecar's `converted_percent` is then the share of the corpus
 that converts *faithfully*, and each refusal says what would have bent.
 
-How often that bites, measured over two public EPC collections: 74 % of
-the 604 SAP reference models convert today (26 % before several start
-events were supported), and 32 % of the 4332 BPM Academic Initiative
-models did at that earlier point, multiple start events accounting for
-24 % of its refusals. The nine EPCs those numbers were read off — a mortgage
-origination process among them — are in
-[`tests/fixtures/corpus/`](tests/fixtures/corpus/README.md) with the
-census and its method. Five of the nine are fetched rather than
+How often that bites, measured over two public EPC collections: 74.0 %
+of the 604 SAP reference models convert today (26.3 % before several
+start events were supported) and 46.0 % of the 4332 BPM Academic
+Initiative models (32.0 % before; 40.5 % under `--strict`). The first
+refusal in both is an unstructured join (14.2 % and 19.6 %); loop shapes
+with no faithful form are the second on BPMAI (18.6 %). The nine EPCs
+the shapes were developed against — a mortgage origination process among
+them — are in [`tests/fixtures/corpus/`](tests/fixtures/corpus/README.md)
+with the full census columns and their method. Five of the nine are fetched rather than
 redistributed, their licence being incompatible with this one; one
 command builds them.
 
