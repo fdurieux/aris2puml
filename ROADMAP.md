@@ -351,10 +351,18 @@ Two rules that follow from the pin to pumllint:
 
 ## Version plan
 
-| Version | Contents | Exit criterion |
-|---|---|---|
-| 0.1.0 (shipped 2026-09-04) | JSON contract v1, structure, emit, CLI, untested script | — |
-| 0.2.0 | A1, A2, A3, A4 | one real EPC converts and lints clean under the guide's conventions |
-| 0.3.0 | B1–B3, D1 | ≥ 90 % of the adopter's process corpus converts without refusal (measured by A3) |
-| 0.4.0 | B4, B5, and C1 if its gate fired | — |
-| 1.0.0 | JSON contract v1 frozen | three real processes in the golden corpus; D1 green for a month |
+| Version | Contents | Exit criterion | Status (2026-09-06) |
+|---|---|---|---|
+| 0.1.0 (shipped 2026-09-04) | JSON contract v1, structure, emit, CLI, untested script | — | shipped |
+| 0.2.0 | A1, A2, A3, A4 | one real EPC converts and lints clean under the guide's conventions | A2, A3 shipped; A1 adopter-gated (A1a served by the public corpus, A1b the script at runtime) and A4 waits on it — **open on the gate alone** |
+| 0.3.0 | B1–B3, D1 | ≥ 90 % of the adopter's process corpus converts without refusal (measured by A3) | B2, B3 shipped, C0 shipped unplanned; B1 at its residual (the remaining loop shapes have no faithful activity-diagram form); D1 open; the criterion is measured on the adopter's corpus, so it cannot close before 0.2.0 |
+| 0.4.0 | B4, B5, and C1 if its gate fired | — | B4, B5 shipped ahead of 0.2.0; C1 gated |
+| 1.0.0 | JSON contract v1 frozen | three real processes in the golden corpus; D1 green for a month | open, on 0.2.0's gate and D1 |
+
+*Read 2026-09-06: the contents column no longer orders the releases.
+Everything in the 0.3.0 and 0.4.0 rows that was not adopter-gated shipped
+before 0.2.0's gate fired, so the next cut — whatever its number — carries
+A2–A3, B2–B5 and C0 on top of 0.1.0 and waits on A1 and A4 alone. Whether
+that ships as 0.2.0 under the criterion as written, or the rows are
+renumbered, is the maintainer's decision; this table records the state,
+not the cut.*
