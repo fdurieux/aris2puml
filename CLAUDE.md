@@ -44,7 +44,7 @@ follows the reader, not the topic:
 "Explain in plain English" is therefore the adopter register, not a
 verbosity setting: apply it when the reader is an adopter, or when asked.
 A prose walkthrough has no golden behind it, so `tests/test_docs_flags.py`
-is its gate: every `--flag` that `README.md` or this file mentions must be
+is its gate: every `--<name>` option that `README.md` or this file mentions must be
 an option of aris2puml's CLI or, for the pumllint commands the README
 recommends beside it, of pumllint's. Rename or drop an option and the
 suite is red until the prose moves with it.
