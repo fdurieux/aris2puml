@@ -135,6 +135,9 @@ to make it pass.
 and `tests/fixtures/conventions.toml` is that guide's configuration —
 the test suite lints the converter's output with it, so the two
 repositories cannot drift apart on the mapping without a test saying so.
+A second workflow, `drift.yml`, runs the same suite against pumllint's
+`main` branch every day, so a pumllint change that will break the mapping
+is known here before it is released.
 
 ## What is refused
 

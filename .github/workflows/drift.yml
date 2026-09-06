@@ -1,0 +1,23 @@
+name: drift
+# Roadmap D1: run the suite against pumllint's main branch, not the pinned
+# release, so a change to pumllint's parser or rules that breaks the mapping
+# is caught within a day. Red here means one of two things, both true: the
+# mapping table has drifted between the repositories, or pumllint's main
+# is itself broken. tests.yml stays the gate for this repository's changes.
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+jobs:
+  against-pumllint-main:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[test]" "pumllint @ git+https://github.com/fdurieux/pumllint@main"
+      - run: python -c "import pumllint; print('pumllint', pumllint.__version__)"
+      - run: python -m pytest -q
+      - name: Smoke the console script end to end
+        run: aris2puml tests/fixtures/order_to_cash.json -o out --check -c tests/fixtures/conventions.toml
