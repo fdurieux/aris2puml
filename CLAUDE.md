@@ -27,6 +27,28 @@ real model collection and a census figure, never by imagination.
 5. pumllint's `docs/business-processes.md` §2 — the mapping table this
    repository implements line for line; a mapping change starts there.
 
+## Audiences and register
+
+Every document here is written for one of two readers, and the register
+follows the reader, not the topic:
+
+- **Adopter-facing** — `README.md`, and anything an adopter meets first:
+  assume no prior knowledge of ARIS, PlantUML or pumllint. Name a concept
+  before using it, say what a flag does and what the reader gets back, and
+  keep a plain-English walkthrough beside any command sequence the README
+  recommends (the model is README §"The two commands, in plain English").
+- **Maintainer-facing** — `ROADMAP.md`, the corpus README, this file,
+  commit messages, PR bodies and chat replies: assume all of it. Terse,
+  dense, symbols cited by name.
+
+"Explain in plain English" is therefore the adopter register, not a
+verbosity setting: apply it when the reader is an adopter, or when asked.
+A prose walkthrough has no golden behind it, so `tests/test_docs_flags.py`
+is its gate: every `--<name>` option that `README.md` or this file mentions must be
+an option of aris2puml's CLI or, for the pumllint commands the README
+recommends beside it, of pumllint's. Rename or drop an option and the
+suite is red until the prose moves with it.
+
 ## Iron rules
 
 - **No invented structure.** An EPC whose connectors do not reduce to
@@ -117,13 +139,14 @@ the three tests that lint the converter's output).
 
 ```bash
 pip install -e ".[test,check]"            # both extras; CI installs exactly this
-python -m pytest -q                       # 133 tests with pumllint installed. Without
-                                          # it: "109 passed, 3 skipped" - and each skip
+python -m pytest -q                       # 134 tests with pumllint installed. Without
+                                          # it: "109 passed, 4 skipped" - and each skip
                                           # is a WHOLE MODULE (test_cli, test_lanes,
-                                          # test_notes: 24 tests never collected, the
-                                          # cross-repo pin among them), so a green run
-                                          # with 3 skips has linted nothing; install
-                                          # [check] before trusting a full-suite claim
+                                          # test_notes, test_docs_flags: 25 tests never
+                                          # collected, the cross-repo pin and the docs
+                                          # gate among them), so a green run with 4
+                                          # skips has linted nothing; install [check]
+                                          # before trusting a full-suite claim
 
 aris2puml in.json -o out/                 # one .puml per process
 aris2puml --from epml SAPModels.epml -o out/          # every EPC in an EPML document
