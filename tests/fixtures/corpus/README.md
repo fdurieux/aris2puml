@@ -112,9 +112,15 @@ adopter's real exports, which cannot be committed (ROADMAP A1,
 2026-09-06). `tests/test_real.py` proves every process there round-trips
 and lints clean, and a private fixture counts toward 1.0.0. What is
 published from it is the same row the SAP set has here -- converted count,
-refusal buckets, sidecar counts -- produced by `tools/corpus/census.py`
-and `--report` over the directory and written down after it was measured.
-No row yet: nothing has been measured.
+refusal buckets, sidecar counts -- and one command prints it in this
+file's own bucket names, from the census and the `--report` sidecar
+together, refusing when the two disagree on the converted count:
+
+    python tools/corpus/private_set.py          # over tests/fixtures/real/
+
+Paste its table below this paragraph with the date it was measured, and
+nothing else: no process names, no diagram. No row yet: nothing has been
+measured.
 
 ## The models
 
