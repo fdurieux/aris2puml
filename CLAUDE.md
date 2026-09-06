@@ -238,9 +238,19 @@ repositories sit side by side (roadmap item D1 automates this).
   notes the structuring pass records (`APPROXIMATED` in `model.py` plus
   the two `backward` drops). Reader-level drops are the contract and stay
   out; adding a note code is what widens `--strict`.
-- **Hosted sessions push through a branch-scoped git proxy.** Pushes to
-  the designated branch work; the GitHub MCP tools open and merge PRs.
-  Delete-branch-on-merge is on, so a merged PR's branch cleans itself up.
+- **Hosted sessions push through a branch-scoped git proxy, and cannot
+  delete a branch.** Pushes to the designated branch work and the GitHub
+  MCP tools open and merge PRs, but a branch-deleting push
+  (`git push origin :refs/heads/<branch>`) is refused by the proxy with
+  `HTTP 403` — and then prints `Everything up-to-date`, so read the whole
+  output, never the last line. No MCP tool deletes a ref or changes a
+  repository setting. Delete-branch-on-merge is **not** enabled: every
+  merged PR's branch stayed (measured 2026-09-06: six stale branches, all
+  fully contained in `main`). Verify a ref with
+  `git ls-remote origin 'refs/heads/*'`; deleting is the owner's, via
+  `gh api -X DELETE repos/fdurieux/aris2puml/git/refs/heads/<branch>` or
+  the Branches page — or enable "Automatically delete head branches" in
+  the repository settings, which makes the question go away.
 
 ## Tests
 
