@@ -23,6 +23,7 @@ aris2puml corpus/*.json -o out/ --report sidecar.json  # + what each process dro
 aris2puml corpus/*.json -o out/ --strict                # refuse what would be approximated or dropped
 aris2puml corpus/*.json -o out/ --diagnose              # + <name>.refused.puml for each refusal: where, drawn
 aris2puml corpus/*.json -o out/ --notes                 # + each function's documents and systems as a note
+aris2puml corpus/*.json -o out/ --no-lane "Owner TBD"   # label the lane of functions that have no org unit
 ```
 
 Each process becomes `<process-name-slug>.puml`; when two processes in one
@@ -91,6 +92,7 @@ roadmap says when one would.
 |-------------|----------|-----------------|
 | function | `:Verb object;` on one line | ACT006 (verb-first), ACT004 |
 | org unit on a function | `\|Org unit\|` swimlane, re-declared whenever the lane changes | ACT005, XD004 |
+| function with no org unit, in a process that has them | the *no-lane lane*: `\| \|`, blank, so ACT005 flags the missing owner — or the label `--no-lane` gives it; counted in the sidecar as `no-lane` either way. An org unit with no name is a blank lane too (`unnamed-lane`) | ACT005 |
 | start event | `start` then `-> Event;` | ACT001 |
 | several start events, joined before the first function | an *entry region*: `if`/`switch` (XOR join) or `fork` (AND/OR join) right after `start`, the events as branch labels, nested as the joins nest; a chain of XOR joins is one `switch`; a nested group's label is its event names joined by its join's word (`A or B`, `A and B`) | ACT003 |
 | start event entering the flow at a join fed from inside the process (a *mid-flow trigger*) | folded into the arrow label at that join (merged with the preceding event's label: `-> Procured and Budget to be updated;`), preceded by `' epc: external trigger at <join> (<kind>)`, plus a warning on stderr | — |
@@ -164,7 +166,12 @@ cannot carry — for every process, what was:
   org unit on a `backward` return path; a data object tied to no function;
   and, without `--notes`, every data object the diagram would have shown
   with it (`data-omitted` — the sidecar measures what the flag would add);
-- **refused** — the process, with the connector and the reason, verbatim.
+- **refused** — the process, with the connector and the reason, verbatim;
+- **flagged** — a defect the diagram shows as it is, neither dropped nor
+  bent: a function with no org unit in a process that has them (drawn in
+  the no-lane lane), an org unit with no name (drawn as a blank lane).
+  Counted whatever `--no-lane` says, so a label that lints clean cannot
+  hide a missing owner from the number.
 
 A summary block gives the number a process owner reads
 (`converted_percent`); the per-process records are the evidence the

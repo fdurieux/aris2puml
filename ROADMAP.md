@@ -114,6 +114,23 @@ Two rules that follow from the pin to pumllint:
   outputs are named from the process *name*, so two processes sharing a
   name overwrite one file — the sidecar shows both records pointing at it.
   The 0.3.0 criterion, "≥ 90 % converts, measured by A3", is now measurable.
+  *2026-09-06: a third bucket, `flagged` — a model defect the diagram
+  shows as it is, neither dropped nor bent — added with the no-lane lane.
+  Rendering checked for the first time over the whole BPMAI set: once a
+  diagram uses swimlanes PlantUML wants one before `start` and rejects
+  `||`, so 126 of the 1 994 converted diagrams (first function unowned,
+  a later one owned) plus the empty-org-unit-name cases did not render;
+  and a function with no org unit after an owned one silently inherited
+  its lane — 322 of the 441 laned processes. Now, in a process that uses
+  lanes, every action is drawn in its own and "no org unit" is a lane of
+  its own: blank by default (ACT005 flags it, the honest signal), labelled
+  by `--no-lane` on request, counted as `no-lane` either way. An org unit
+  with no name is drawn as a blank lane and counted as `unnamed-lane`.
+  Decision, by the maintainer, from a SWOT of blank / readable /
+  lint-clean placeholders: blank, configurable, counted regardless — the
+  count is what keeps a lint-clean label from hiding the gap. 1 670 of the
+  1 994 diagrams are byte-identical; the 324 others differ only in lane
+  lines.*
   *2026-09-05: the name collision is fixed. Measured first on BPMAI: 1 994
   processes converted into 1 833 files — 73 names shared by 234 processes,
   161 diagrams overwritten (`new-process` ×22, `neuer-prozess` ×17 …).

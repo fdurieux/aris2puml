@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 from aris2puml.cli import convert
-from aris2puml.model import APPROXIMATED, DROPPED, Note
+from aris2puml.model import APPROXIMATED, DROPPED, FLAGGED, Note
 from aris2puml.readers.epml import read_epml
 from aris2puml.report import VERSION, Record, Report
 from aris2puml.structure import structure
@@ -33,7 +33,7 @@ def test_a_clean_conversion_is_one_converted_record_with_nothing_lost():
     assert rec.status == "converted" and rec.approximated == [] and rec.dropped == []
     assert r.summary() == {
         "inputs": 1, "processes": 1, "converted": 1, "refused": 0,
-        "converted_percent": 100.0, "approximated": 0, "dropped": 0,
+        "converted_percent": 100.0, "approximated": 0, "dropped": 0, "flagged": 0,
     }
 
 
@@ -75,8 +75,9 @@ def test_every_note_code_belongs_to_exactly_one_category():
     assert not set(APPROXIMATED) & set(DROPPED)
     for code in ("mid-flow-trigger", "or-start-events", "or-connector",
                  "return-path-events", "return-path-lane",
-                 "unsupported-element", "unused-lane", "unattached-data", "data-omitted"):
-        assert code in APPROXIMATED or code in DROPPED, code
+                 "unsupported-element", "unused-lane", "unattached-data", "data-omitted",
+                 "no-lane", "unnamed-lane"):
+        assert (code in APPROXIMATED) + (code in DROPPED) + (code in FLAGGED) == 1, code
 
 
 def test_a_refused_process_keeps_its_reason_and_no_output():

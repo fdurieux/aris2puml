@@ -177,6 +177,15 @@ finished structuring:*
 | no way out: a cycle that never reaches an end event | — | 0.4 % |
 | smaller refusals | 1.8 % | 5.3 % |
 
+*2026-09-06, rendering:* every one of the 1 994 converted BPMAI diagrams
+was also checked with PlantUML (`-checkonly`, one file at a time). Before
+the no-lane lane, 126 with swimlanes but none before `start` failed, plus
+the models whose org unit has no name (`||`); after it, **1 993 of 1 994
+render**. The one left is a different defect — a `repeat while … not`
+whose exit label is empty, leaving a bare `not` — recorded for a
+follow-up. The SAP set has no org units at all, so its diagrams never had
+lanes to fail on.
+
 The no-way-out row is a shape the structurer used to spin on rather
 than refuse: a connector whose only successor is itself, or a ring of
 connectors nothing leaves. Seventeen BPMAI models have one; seven of
