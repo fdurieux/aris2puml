@@ -191,13 +191,17 @@ windows for 3.11 and 3.12, then the console-script smoke step
 (`aris2puml tests/fixtures/order_to_cash.json -o out --check -c
 tests/fixtures/conventions.toml`). Windows is in the matrix because the
 CLI writes diagrams with `newline="\n"` and prints forward-slash paths;
-keep both when touching `cli.py`.
+keep both when touching `cli.py`. `drift.yml` is the second workflow:
+scheduled, not a gate, see above.
 
 pumllint's floor is `check = ["pumllint>=0.33"]` in `pyproject.toml`, with
 a comment naming the rule that needed the bump. Raise it only when the
 suite needs a newer rule, and say which. To test against pumllint `main`
 rather than the pinned release: `pip install -e ../pumllint` when the two
-repositories sit side by side (roadmap item D1 automates this).
+repositories sit side by side. `.github/workflows/drift.yml` (D1) does the
+same daily on ubuntu, installing pumllint from git `main`; a red drift run
+means the mapping has drifted between the repositories or pumllint's main
+is broken, and either way the aris2puml side moves next.
 
 ## Context that saves you an investigation
 

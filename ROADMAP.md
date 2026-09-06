@@ -399,10 +399,28 @@ Two rules that follow from the pin to pumllint:
 
 ## Arc D — Operations (P2, wait for pull)
 
-- [ ] **D1. Cross-repo drift job** — a scheduled CI job that runs the test
+- [x] **D1. Cross-repo drift job** *(2026-09-06)* — a scheduled CI job that runs the test
   suite against pumllint `main` (not the pinned release), so a change to
   pumllint's parser or rules that breaks the mapping is caught within a
   day. Small, high leverage; do it as soon as A4 exists.
+  *2026-09-06: shipped ahead of A4, as `.github/workflows/drift.yml` —
+  daily at 04:17 UTC and on dispatch, ubuntu, Python 3.12, `pip install
+  -e ".[test]" "pumllint @ git+…/pumllint@main"`, then the suite and the
+  console-script smoke. Pulled forward under the maintainer's overnight
+  instruction to proceed without intervention and decide alternatives by
+  SWOT; the SWOT, in brief: build now in this repository (one file,
+  follows the cross-repo landing order — pumllint first, this side within
+  a day — and the two 2026-09-06 changes, #137 and #139, show the drift is
+  real and daily) beat waiting for A4 (adopter-gated, so months of unseen
+  drift) and beat a job inside pumllint's CI (inverts the landing order
+  and couples pumllint's gate to this repository's main). Reversible by
+  deleting the file; the sequencing was the maintainer's and this entry
+  is where to reverse it. Dry run before shipping: the suite against
+  pumllint main at 0.33.0 today, 136 passed, 1 skipped, smoke clean. A
+  red run reads two ways, both true — the mapping drifted, or pumllint's
+  main is broken — and either way this side moves next; no auto-filed
+  issue, GitHub's failed-run notice is the signal (a weakness the SWOT
+  recorded).*
 - [ ] **D2. Composite GitHub Action and pre-commit hook** — mirror
   pumllint's; the CLI already has the exit codes. Wait for one CI adopter.
   *2026-09-06: the adopter brief (A1's entry of this date) tags
@@ -438,9 +456,9 @@ Two rules that follow from the pin to pumllint:
 |---|---|---|---|
 | 0.1.0 (shipped 2026-09-04) | JSON contract v1, structure, emit, CLI, untested script | — | shipped |
 | 0.2.0 | A1, A2, A3, A4 | one real EPC converts and lints clean under the guide's conventions | A2, A3 shipped; A1 adopter-gated (A1a served by the public corpus, A1b the script at runtime) and A4 waits on it — **open on the gate alone** |
-| 0.3.0 | B1–B3, D1 | ≥ 90 % of the adopter's process corpus converts without refusal (measured by A3) | B2, B3 shipped, C0 shipped unplanned; B1 at its residual (the remaining loop shapes have no faithful activity-diagram form); D1 open; the criterion is measured on the adopter's corpus, so it cannot close before 0.2.0 |
+| 0.3.0 | B1–B3, D1 | ≥ 90 % of the adopter's process corpus converts without refusal (measured by A3) | B2, B3 shipped, C0 shipped unplanned; B1 at its residual (the remaining loop shapes have no faithful activity-diagram form); D1 shipped 2026-09-06 ahead of A4; the criterion is measured on the adopter's corpus, so it cannot close before 0.2.0 |
 | 0.4.0 | B4, B5, and C1 if its gate fired | — | B4, B5 shipped ahead of 0.2.0; C1 gated |
-| 1.0.0 | JSON contract v1 frozen | three real processes in the golden corpus; D1 green for a month | open, on 0.2.0's gate and D1 |
+| 1.0.0 | JSON contract v1 frozen | three real processes in the golden corpus; D1 green for a month | open, on 0.2.0's gate; D1's month runs from 2026-09-06 |
 
 *Read 2026-09-06: the contents column no longer orders the releases.
 Everything in the 0.3.0 and 0.4.0 rows that was not adopter-gated shipped
