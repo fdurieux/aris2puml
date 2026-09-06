@@ -33,7 +33,7 @@ merge on a red or pending run.
 - **Exit codes** `0` / `1` / `2`: converted; `--check` found issues; an
   input could not be read or structured, or usage error. A refusal is
   always `2`, `--strict` included.
-- **The version-1 JSON contract** (`README.md` "What goes in"). Extend it
+- **The version-1 JSON contract** (`README.md` "The intermediate JSON (version 1)"). Extend it
   additively only — a new optional array or field, version stays 1. A
   breaking change is the 1.0.0 decision in ROADMAP.md, not a patch.
 - **The sidecar shape** (`--report`, `aris2puml/report.py` docstring):
