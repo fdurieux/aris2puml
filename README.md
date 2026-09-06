@@ -216,6 +216,108 @@ two ways across processes without any of this.
 
 The same ids sit on each converted record of the sidecar (`interfaces`).
 
+### The two commands, in plain English
+
+For a reader who has never used either tool.
+
+**The situation.** An organisation keeps its business processes as
+diagrams in a modelling tool called ARIS. Each diagram is an event-driven
+process chain, or EPC: a chain of events ("credit application received"),
+functions ("check credit history"), and connectors that split and rejoin
+the flow. Some functions are special. A *process interface* is a box that
+says "at this point, another process takes over", and it carries the
+identifier of that other process. It is how one process points at
+another. Two small tools work on these diagrams. `aris2puml`, this one,
+translates an EPC out of ARIS into a plain-text notation called PlantUML,
+so the diagram can live in a code repository and be checked mechanically.
+`pumllint` is a checker for PlantUML files, in the way a spell checker
+checks prose: it reads diagrams, applies rules about how a well-formed
+diagram should look, and reports what it finds. Together the two commands
+answer one question: does every process that one of your diagrams points
+at actually exist as a diagram? A process interface pointing at a process
+nobody has drawn, or that was exported but could not be converted, is a
+broken link in the process landscape.
+
+**The first command, piece by piece.**
+
+- `aris2puml` starts the converter.
+- `exports/*.json` names the input. ARIS does not hand its diagrams to the
+  converter directly; a small report script run inside ARIS exports each
+  process as a JSON file — a plain-text file holding the process name, its
+  identifier, its owner, its lanes for the organisational units involved,
+  its nodes, and the arrows between them. The star is a wildcard, so this
+  reads every such file in the folder `exports`. Each file is one process.
+- `-o out/` says where the results go: one PlantUML text file per
+  converted process, into the folder `out`, named after the process
+  ("Order to cash" becomes `order-to-cash.puml`). Converting is not
+  guaranteed. The converter refuses any process whose flow cannot be
+  expressed as properly nested blocks — a branch that jumps into the middle
+  of another branch, say — and refuses rather than guessing, because it
+  must never invent structure the modeller did not draw. A refused process
+  gets no output file and a message naming the exact connector at fault.
+  Inside each converted file the converter writes a footer line carrying
+  the process owner, the process's own identifier and the identifiers of
+  every process its interfaces point at. That footer is where the second
+  tool looks.
+- `--manifest manifest.json` asks for one extra file: a list, in JSON, of
+  every process that converted in this run — its identifier, its name,
+  where its diagram was written, and which other processes it points at.
+  Refused processes are deliberately left out, because they have no
+  diagram. The manifest is the inventory of diagrams that now exist.
+
+**The second command, piece by piece.**
+
+- `pumllint trace` starts the checker in its tracing mode. Most of the
+  time pumllint checks individual diagrams for style and completeness.
+  Tracing mode builds a cross-reference table between an inventory of
+  identifiers and the diagrams that mention them, then reports three kinds
+  of mismatch. It was built for requirement identifiers, so a team could
+  see which requirements a diagram realises; here the identifiers are
+  process identifiers, and the machinery works unchanged.
+- `out/` tells it which diagrams to read: every PlantUML file in the
+  folder the first command filled. In each file it looks at the diagram's
+  name and its title, header, footer, caption and notes, and collects every
+  string that looks like an identifier. It does not read comment lines,
+  which is exactly why the converter puts the identifiers in the footer
+  rather than only in a comment.
+- `--requirements manifest.json` supplies the inventory. The option's name
+  comes from the tool's original purpose, but it accepts any list of
+  identifiers, and the manifest is in the accepted shape. So the inventory
+  is the set of processes that have a diagram.
+- `-c conventions.toml` points at a configuration file. Among other things
+  it tells pumllint what a process identifier looks like, as a pattern
+  such as "`PROC-` followed by four digits". Without it the tool could not
+  tell which words in a footer are identifiers. The same file configures
+  the style checks, so the pattern is defined once.
+- With the diagrams read and the inventory loaded, every identifier lands
+  in one of three groups. An inventory entry no diagram mentions is
+  *uncovered*. A diagram that mentions no identifier is *unlinked*. An
+  identifier a diagram mentions that is absent from the inventory is an
+  *unknown reference*. Here every diagram mentions its own identifier in
+  its footer, so every entry is covered by at least its own diagram and no
+  diagram is unlinked; the interesting group is the third. An unknown
+  reference means a footer names a process its interfaces point at, and
+  that process has no diagram in the batch — never exported, or exported
+  and refused. That is the broken link.
+- `--fail-on-unknown-ref` turns the report into a verdict. Without it the
+  tool prints the table and exits normally. With it, the tool still prints
+  the table but exits with a failure code if the third group is not empty.
+  The exit code is the number a command hands back to whoever ran it, and
+  automated pipelines read it: a failure makes a build go red, which is
+  what turns the check into a gate a team can enforce on every change.
+
+**What you get.** If everything is consistent, the second command prints
+a summary saying all processes are covered with no unknown references,
+and exits successfully. If not, it prints each missing identifier with
+the diagram and line that points at it — "`PROC-0051` is referenced by
+`order-to-cash.puml` at line 3 but is not in the inventory" — so the
+process owner sees exactly which link is broken and where. One variation:
+hand the second command the full list of processes from the ARIS process
+landscape instead of the manifest, and the first group becomes meaningful
+too — an *uncovered* entry is a process the landscape says exists but
+nobody has a checkable diagram for, and `--fail-on-uncovered` gates on it
+the same way.
+
 ## Gating on fidelity: `--strict`
 
 `--strict` turns every approximation and drop the structuring pass would
