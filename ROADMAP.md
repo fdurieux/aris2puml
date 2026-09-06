@@ -70,6 +70,24 @@ Two rules that follow from the pin to pumllint:
   genuinely ARIS, but their payload is encrypted. AML export needs a
   licensed Architect or Designer, so no amount of searching substitutes
   for the adopter. Recorded in `tests/fixtures/corpus/README.md`.*
+  *2026-09-06: an adopter's governance brief (two documents — a SAFe-CDP ×
+  APQC taxonomy design with an artefact ledger, and a toolchain assessment
+  placing this chain as "Loop A, commit-time" against process-mining
+  conformance as "Loop B") was read against this roadmap and pumllint's;
+  the reconciliation, twenty-one claim checks with file and line, is
+  published beside the documents (https://claude.ai/code/artifact/c3e39034-e727-430b-8170-8ca152ea9b80).
+  Its "sequence, not scope" is this item: build the export script first,
+  then run advisory over the credit L3 set and read the sidecar before the
+  findings — A1b, then the 0.3.0 criterion measured by A3. Nothing on the
+  gate moves. One question for the maintainer, raised by the brief and not
+  settled here: this item's deliverable is an anonymised real export
+  committed under `tests/fixtures/real/`, and a bank's credit process may
+  not be committable at all; the corpus README's fetched-not-committed
+  shape (the SAP five) is the precedent if not. On such a corpus expect the
+  first refusal to be the credit-decision join both mortgage models carry
+  — two XOR outcomes converging on the approve/reject action — a modelling
+  defect per B1's 2026-09-06 entry, so `--diagnose` is the answer, not a
+  converter change.*
 - [x] **A2. Multiple start events** *(2026-09-04)* — shipped as *entry
   regions* plus *mid-flow triggers*. Entry region: start events grouped by
   the join each reaches, following the post-dominator tree, into nested
@@ -267,6 +285,19 @@ Two rules that follow from the pin to pumllint:
   variant-of relation between processes, when the JSON contract grows one,
   would ride the same manifest. The golden moves by its footer line only;
   the corpus figures do not move (no kept model carries an interface).*
+  *2026-09-06, later: the adopter brief (see A1's entry of this date) puts
+  two things on the process that the contract does not carry — a design
+  lifecycle state (Draft … Published … Retired) and a capability-variant
+  type — and asks whether either must cross into the projection. Neither
+  does, today. "Cite Published processes only" is the inventory's shape,
+  not the diagram's: export the Published set as the `--requirements`
+  list and `trace --fail-on-unknown-ref` refuses every other reference,
+  with no attribute in the JSON. The variant relation stays where this
+  entry left it — it rides the manifest when the contract grows one — and
+  the brief itself records the construct as not yet in the published
+  method, so there is no demand to gate on; pumllint's typed
+  diagram→diagram links item (Arc C, `ref over` / declared links) is the
+  other half when there is. The contract stays at `owner`.*
 - [x] **B5. Structure diagnostics** *(2026-09-05)* — on `StructureError`,
   write the partial diagram with the offending connector as a `#red` note
   so the modeller sees *where* to restructure, instead of an id on stderr.
@@ -327,6 +358,11 @@ Two rules that follow from the pin to pumllint:
   day. Small, high leverage; do it as soon as A4 exists.
 - [ ] **D2. Composite GitHub Action and pre-commit hook** — mirror
   pumllint's; the CLI already has the exit codes. Wait for one CI adopter.
+  *2026-09-06: the adopter brief (A1's entry of this date) tags
+  "pre-commit hook, GitHub Action, ratchet" as a fact of the chain; it is
+  a fact of pumllint's half only — this item is the converter's, and the
+  brief's pipeline is the CI adopter the gate names, once it exists. Gate
+  unchanged.*
 - [ ] **D3. `--from csv`** — a flat table export for teams whose ARIS
   administrators will not run scripts. Only if A1 reveals that is the
   blocker.
