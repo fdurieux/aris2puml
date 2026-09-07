@@ -276,9 +276,15 @@ is broken, and either way the aris2puml side moves next.
   `gh api -X DELETE repos/fdurieux/aris2puml/git/refs/heads/<branch>` or
   the Branches page.
   **A tag push is refused the same way** (2026-09-07, `git push origin
-  v0.1.0`: `HTTP 403`, then `Everything up-to-date`): a hosted session can
-  prepare an annotated tag and its message, and the maintainer pushes it
-  from a local clone; no MCP tool creates a tag or a GitHub Release either.
+  v0.1.0`: `HTTP 403`, then `Everything up-to-date`), and no MCP tool
+  creates a tag or a GitHub Release. **A new branch at any commit is
+  accepted**, though (the same day: `git push origin <sha>:refs/heads/
+  release/v0.1.0` created the branch), so the route to a retroactive tag
+  from a hosted session is: push a throwaway branch at the commit, let the
+  maintainer publish the release in the GitHub UI with that branch as the
+  target (the tag is created on publish), then the maintainer deletes the
+  branch. `create_branch` in the MCP set branches from a branch head only,
+  never from a commit.
 
 ## Tests
 
