@@ -275,6 +275,10 @@ is broken, and either way the aris2puml side moves next.
   `git ls-remote origin 'refs/heads/*'`; deleting one is the owner's, via
   `gh api -X DELETE repos/fdurieux/aris2puml/git/refs/heads/<branch>` or
   the Branches page.
+  **A tag push is refused the same way** (2026-09-07, `git push origin
+  v0.1.0`: `HTTP 403`, then `Everything up-to-date`): a hosted session can
+  prepare an annotated tag and its message, and the maintainer pushes it
+  from a local clone; no MCP tool creates a tag or a GitHub Release either.
 
 ## Tests
 
