@@ -1,7 +1,8 @@
 # aris2puml roadmap
 
 Status baseline: **v0.1.0** (2026-09-04; tagged `v0.1.0` at `02ca985`
-on 2026-09-07 — prepared here, pushed by the maintainer; not on PyPI)
+on 2026-09-07 — released from the GitHub UI, the tag created on publish;
+not on PyPI)
 shipped the version-1 JSON contract, the structuring pass, the emitter, the CLI with `--check`, a test
 suite pinned to pumllint's `docs/process-demo/` corpus, and an **untested**
 ARIS report-script template. This file holds what remains, in priority
@@ -463,7 +464,7 @@ Two rules that follow from the pin to pumllint:
 
 | Version | Contents | Exit criterion | Status (2026-09-06) |
 |---|---|---|---|
-| 0.1.0 (shipped 2026-09-04) | JSON contract v1, structure, emit, CLI, untested script | — | shipped; tagged `v0.1.0` at `02ca985` (2026-09-07, annotated; no PyPI) |
+| 0.1.0 (shipped 2026-09-04) | JSON contract v1, structure, emit, CLI, untested script | — | shipped; tagged `v0.1.0` at `02ca985` (2026-09-07, lightweight, created by the [GitHub release](https://github.com/fdurieux/aris2puml/releases/tag/v0.1.0); no PyPI) |
 | 0.2.0 | A1, A2, A3, A4 | one real EPC converts and lints clean under the guide's conventions | A2, A3 shipped; A1 adopter-gated (A1a served by the public corpus, A1b the script at runtime) and A4 waits on it — **open on the gate alone** |
 | 0.3.0 | B1–B3, D1 | ≥ 90 % of the adopter's process corpus converts without refusal (measured by A3) | B2, B3 shipped, C0 shipped unplanned; B1 at its residual (the remaining loop shapes have no faithful activity-diagram form); D1 shipped 2026-09-06 ahead of A4; the criterion is measured on the adopter's corpus, so it cannot close before 0.2.0 |
 | 0.4.0 | B4, B5, and C1 if its gate fired | — | B4, B5 shipped ahead of 0.2.0; C1 gated |
@@ -504,4 +505,11 @@ prepared here and pushed by the maintainer from a local clone: `git tag
 -a v0.1.0 02ca985 -F <message>` then `git push origin v0.1.0`, the message
 being the one in this note's PR. A4 is untouched: PyPI still waits on one
 real fixture, and the next cut's number is still the decision the note
-above leaves to the maintainer.*
+above leaves to the maintainer.* *(Corrected the same day: the tag was
+not pushed from a clone. The release was published in the GitHub UI at
+10:08 UTC, targeting the throwaway branch `release/v0.1.0` that PR #38
+pushed at `02ca985` — a new branch at any commit is the one push the proxy
+accepts — so the tag GitHub created on publish is lightweight, and the
+message above is the release body, not a tag object: pumllint's practice
+after all. The annotated tag prepared in the hosted session was never
+pushed and is discarded. The branch is the maintainer's to delete.)*
