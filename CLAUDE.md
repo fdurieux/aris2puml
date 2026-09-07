@@ -336,9 +336,14 @@ reach the pages says so in its reply and leaves the ROADMAP as the record.
   versioned, and its `converted` count must equal the census's.
 - **The mapping table** in README.md "What comes out" mirrors pumllint's
   `docs/business-processes.md` §2. Change them together, never one alone.
-- **Refusal messages name the node id** and the reason verbatim; the
-  sidecar and `--diagnose` read the ids from `StructureError`, never from
-  the prose. Do not reword a refusal without checking both consumers.
+- **Refusal messages name the node id** and the reason verbatim.
+  `--diagnose` reads the ids from `StructureError.nodes`, never from the
+  prose (`diagnose.py:32`); the sidecar carries the message itself, as
+  the prose `reason` string, and no ids (`report.py:76-84`). So rewording
+  a refusal is safe for `--diagnose` and changes the sidecar's `reason`
+  verbatim — check both, for different reasons. A structured node field
+  on the refused record is the obvious additive extension if a consumer
+  ever needs to join on it; none does today.
 - **Output file names are deterministic** and independent of input order:
   a duplicate slug gets the process id appended.
 

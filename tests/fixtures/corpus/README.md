@@ -194,6 +194,43 @@ finished structuring:*
 | no way out: a cycle that never reaches an end event | — | 0.4 % |
 | smaller refusals | 1.8 % | 5.3 % |
 
+*2026-09-07, the `--strict` cost on SAP and the altitude of what
+converts.* Measured over the same pinned `SAPModels.epml` (sha256
+`d344dd98…648bea`) converted whole with `tools/corpus/epml_to_json.py`,
+then `--strict --report` over the directory; the plain column reproduces
+the 2026-09-05 row exactly (447, 74.0 %). The `--strict` column had not
+been measured on this collection before — only BPMAI's had:*
+
+| SAP reference model (604) | |
+|---|---|
+| converts | 74.0 % (447) |
+| converts under `--strict` | **43.2 %** (261) — a **30.8 pp** cost, against BPMAI's 5.5 pp |
+| STRICT notes on the 447 | `or-connector` 99, `mid-flow-trigger` 70, `or-start-events` 60; both `backward` return-path codes **0** |
+| carries an OR connector | **83.1 %** of the 142 structurally refused, **34.0 %** of the 447 converted |
+| *substantial* — ≥ 5 functions and ≥ 1 connector | 160 (26.5 % of the file set) |
+| of the substantial, converts | 74 (**46.2 %**) |
+| of the substantial, converts with no STRICT note | 33 (20.6 %; 5.5 % of the file set) |
+
+Three things that settles for this collection. **The approximation is
+six times more expensive here than on BPMAI**, and it is the OR
+connector that costs it (99 of 447); the two `backward` return-path
+drops fire on nothing at all, so `--strict`'s scope is carried by its
+three approximations alone. **74.0 % is carried by short models** — the
+median converted SAP model has 2 functions, 77 have five or more and 15
+have ten or more — so reading the headline rate as coverage of processes
+with something worth checking is off by roughly a factor of three; the
+substantial-model rate is 46.2 %. And **the OR concentrates in the
+refused set**, 83.1 % against 34.0 %: whatever else the refused models
+are, they are not a clean remainder that some other tool picks up
+unchanged, because the one connector with non-local semantics is where
+they cluster.
+
+The last four rows characterise the corpus rather than count a
+conversion, so `census.py` does not compute them: they come from the
+same JSON directory, counting `kind` over each process's nodes, with
+`structure()` deciding converted and refused. The first two rows are the
+sanctioned route and reproduce with the commands above.
+
 *2026-09-06, rendering:* every one of the 1 994 converted BPMAI diagrams
 was also checked with PlantUML (`-checkonly`, one file at a time). Before
 the no-lane lane, 126 with swimlanes but none before `start` failed, plus

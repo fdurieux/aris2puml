@@ -301,6 +301,23 @@ Two rules that follow from the pin to pumllint:
   `--strict --report` reads 3 of 9 (the three SAP OR approximations become
   refusals); over BPMAI 1 756 of 4 332 (40.5 %) convert faithfully, from
   46.0 % with approximations allowed.*
+  *2026-09-07: the same figure measured on the SAP set for the first time
+  — 261 of 604 (**43.2 %**) under `--strict`, from 74.0 %. That is a
+  **30.8-point** cost against BPMAI's 5.5, and the asymmetry is the OR
+  connector: of the STRICT notes on the 447 converted models,
+  `or-connector` fires on 99, `mid-flow-trigger` on 70, `or-start-events`
+  on 60, and the two `backward` return-path codes on **none**. So on this
+  collection `--strict`'s scope is carried entirely by its three
+  approximations, and the B3 re-litigation clause above has nothing
+  measured behind it either way. Two corpus characterisations from the
+  same run, recorded because they change how the headline rate should be
+  read: an OR connector appears in 83.1 % of the 142 structurally refused
+  models against 34.0 % of the converted, and of the 160 models that are
+  *substantial* (≥ 5 functions and ≥ 1 connector) only 74 convert
+  (46.2 %) and 33 convert STRICT-clean — the median converted SAP model
+  has 2 functions, so 74.0 % is not a coverage figure for processes with
+  something worth checking. Full table and method in the corpus README;
+  no code changed and no gate moves.*
 - [x] **B3. `--notes`** *(2026-09-05)* — information objects, documents and
   IT systems as `note right` on their function; opt-in because pumllint's
   GEN008 counts notes. Extends the JSON contract additively (a `"data"`
