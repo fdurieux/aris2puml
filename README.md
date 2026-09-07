@@ -349,7 +349,9 @@ that converts *faithfully*, and each refusal says what would have bent.
 How often that bites, measured over two public EPC collections: 74.0 %
 of the 604 SAP reference models convert today (26.3 % before several
 start events were supported) and 46.0 % of the 4332 BPM Academic
-Initiative models (32.0 % before; 40.5 % under `--strict`). The first
+Initiative models (32.0 % before). Under `--strict` those become 43.2 %
+and 40.5 % — a 30.8-point cost on the SAP set against 5.5 on BPMAI,
+almost all of it the OR connector. The first
 refusal in both is an unstructured join (14.2 % and 19.6 %); loop shapes
 with no faithful form are the second on BPMAI (18.6 %). The nine EPCs
 the shapes were developed against — a mortgage origination process among
