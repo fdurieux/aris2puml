@@ -301,6 +301,20 @@ then merge it — no need to ask.** Wait for the whole matrix: ubuntu and
 windows, Python 3.11 and 3.12, plus the console-script smoke step. Do not
 merge on a red or pending run.
 
+**Two artifact pages are the maintainer's running view of both
+repositories, and a merged PR refreshes them in the same turn.** The
+reconciliation, *Two loops against two roadmaps*
+(https://claude.ai/code/artifact/c3e39034-e727-430b-8170-8ca152ea9b80), and
+the queue, *Two roadmaps, one queue*
+(https://claude.ai/code/artifact/a6e5007e-36f8-4a94-b3de-3ba2690512cc), are
+private artifacts of the maintainer's claude.ai account; a session run
+under it updates both after the merge — the PR link with a one-line
+what-and-why in the queue's "done" column and on any queue row whose state
+the PR changes (a decision answered, a gate fired, a follow-up built), and
+in the reconciliation's Record section. The ROADMAP entry lands first and
+the pages quote it: they are views, never the record. A session that cannot
+reach the pages says so in its reply and leaves the ROADMAP as the record.
+
 ## Things that are contracts, not details
 
 - **Exit codes** `0` / `1` / `2`: converted; `--check` found issues; an
