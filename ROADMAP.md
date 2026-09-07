@@ -135,6 +135,14 @@ Two rules that follow from the pin to pumllint:
   one converting and one refused committed model. The README section says
   where the pasted table goes and that it carries the measurement date.
   Still no row: nothing has been measured.*
+  *2026-09-07: the maintainer, answering pumllint's owner decision §6.3,
+  confirmed the pilot and added a doubt about the consistency and quality of
+  the processes documented in ARIS. For this item that lowers the prior on
+  the 0.3.0 criterion (≥ 90 % of the adopter's corpus converting) without
+  changing it: the sidecar's `converted_percent`, the refusal buckets and
+  `--diagnose` are the instruments that turn the doubt into a number, and a
+  low rate is a finding about the models — unstructured joins, mismatched
+  connectors — not a reason to widen what converts. The Never list stands.*
 - [x] **A2. Multiple start events** *(2026-09-04)* — shipped as *entry
   regions* plus *mid-flow triggers*. Entry region: start events grouped by
   the join each reaches, following the post-dominator tree, into nested
