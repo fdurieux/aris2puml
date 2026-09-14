@@ -438,6 +438,11 @@ consequences here, none of them work:
 - **No ArchiMate front-end**, now on the Never list with its reason: no
   XOR junction exists in ArchiMate 3.2 to read. That is an artefact
   refusal and does not touch C1's or C2's gates, which are unchanged.
+  *(Same day, later: three further slides of the deck prompted a check
+  against **ArchiMate 4**, published April 2026 — a reduction to 40
+  element types with the 11 relationship types unchanged, so the
+  refusal holds a fortiori; the junction text itself is behind Open
+  Group SSO and could not be read. Recorded on the Never entry.)*
 - **The emitter clause was touched and not fired** — annotated on the
   Never list. The deck's knowledge base is the shape of consumer that
   clause names; a slide is not one.
@@ -531,6 +536,24 @@ consequences here, none of them work:
   (pumllint refused ArchiMate readers on 2026-08-27 on separate grounds —
   the `.puml` is a rendering of a model held elsewhere. Two independent
   derivations, same answer.)
+  *2026-09-14, later — checked against **ArchiMate 4**, which shipped in
+  April 2026 and which the entry above does not mention because the
+  record on both sides still said 3.2 was current (corrected in
+  pumllint's ArchiMate note the same day). The refusal turns on one
+  fact, that no XOR junction exists. ArchiMate 4's published delta is a
+  **reduction** — 61 element types down to 40, the per-layer behavioural
+  duplicates merged into cross-domain `Process`/`Function`/`Event`/
+  `Service`, six elements removed (`Interaction`, `Contract`,
+  `Representation`, `Gap`, `ImplementationEvent`, `Constraint`), layers
+  replaced by domains — with the **11 relationship types unchanged**. A
+  reduction cannot introduce a connector the language did not have, so
+  the refusal holds a fortiori. **The gap, stated rather than papered
+  over: ArchiMate 4's junction section could not be read** — every Open
+  Group host serving the specification redirects to their SSO — so this
+  is an argument from the published delta, not a reading of the text.
+  Re-litigate if ArchiMate 4's relationship-connector text becomes
+  readable and turns out to define an exclusive junction; nothing else
+  in the 3.2→4 change touches this entry.*
 - **No invented structure.** Unstructured EPCs are refused, never
   "repaired". *No clause: this is the tool's reason to exist.*
 
