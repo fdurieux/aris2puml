@@ -424,6 +424,39 @@ Two rules that follow from the pin to pumllint:
   still not know what it read — the same gap `aris/export_epc.js` carries
   in its header.*
 
+*2026-09-14, on this arc's scope — an EA deck, and the front-end it does
+not open.* An adopter's EA function circulated five slides (an
+ArchiMate→Open-Exchange→OWL2/RDF+Datalog+graph-store transformation map;
+an ArchiMate-at-the-centre standards star; a five-stage pipeline of models
+and principles → ontology grounding → derivation → validation → report;
+its inputs reduced; a six-row use-case list) asking where this converter
+and pumllint fit. Read against both roadmaps; the evaluation is
+pumllint's [`docs/ea-ontology-stack-evaluation.md`](https://github.com/fdurieux/pumllint/blob/main/docs/ea-ontology-stack-evaluation.md),
+with the record in that repository's ROADMAP the same day. Three
+consequences here, none of them work:
+
+- **No ArchiMate front-end**, now on the Never list with its reason: no
+  XOR junction exists in ArchiMate 3.2 to read. That is an artefact
+  refusal and does not touch C1's or C2's gates, which are unchanged.
+- **The emitter clause was touched and not fired** — annotated on the
+  Never list. The deck's knowledge base is the shape of consumer that
+  clause names; a slide is not one.
+- **The converter's place in that pipeline is stage 0, not a box in it.**
+  The seam is pumllint's 2026-08-27 Linked.Archi settlement (the deck is
+  that ecosystem one generation upstream — its own related-work page
+  credits the ArchiMEO SHACL principle-validation paper), and what this
+  side contributes to it is the thing no downstream validator can
+  recover: a refusal that names the connector, and the sidecar's honest
+  denominator under any process-coverage figure the pipeline later
+  reports. Measured end to end on the demo plus the four public corpus
+  models — 3 converted, 2 refused, `converted_percent` 60.0; then
+  pumllint at 39 issues / 20 major / exit 1, model set **Level 3
+  (Disciplined), 88.3/100**, and `trace --requirements manifest.json
+  --fail-on-unknown-ref` at **1/3 covered, 1 unknown reference, 2
+  unlinked**, exit 1. The adopter's operational line, from the pumllint
+  half: keep exported ArchiMate `.puml` out of the gate — it lints at
+  exit 0 and scores Level 4 (Precise) on a file the parser does not read.
+
 ## Arc D — Operations (P2, wait for pull)
 
 - [x] **D1. Cross-repo drift job** *(2026-09-06)* — a scheduled CI job that runs the test
@@ -471,9 +504,33 @@ Two rules that follow from the pin to pumllint:
   *Re-litigate only if a consumer other than pumllint appears that needs
   the intermediate model as its input — then the JSON, not a new emitter,
   is the product.*
+  *2026-09-14: touched, not fired. An adopter's EA deck (Arc C, this date)
+  describes an ArchiMate→OWL/RDF knowledge base whose process layer this
+  converter's version-1 JSON would obviously feed — notation-neutral, with
+  ids, owner, lanes, typed nodes, edges, data objects and interface refs,
+  and `--manifest` already the inventory of what converted. That is the
+  clause's shape, but a slide is not a consumer: firing it needs someone
+  asking. When it fires the answer stands as written — the JSON, not an
+  RDF/TriG/OWL emitter here; a consumer lifts the contract, as
+  `tools/corpus/epml_to_json.py` does in the other direction.*
 - **No GUI, no ARIS plugin.** The report script is the integration
   surface. *Re-litigate if A1 shows report scripts are administratively
   blocked at typical adopters; D3 is the first fallback, not a plugin.*
+- **No ArchiMate front-end** *(2026-09-14)*. Refused on the artefact, not
+  on Arc C's adopter gate: **ArchiMate 3.2 has an And Junction and an Or
+  Junction and no XOR**, the exclusive reading being conveyed by *naming*
+  the junction. The version-1 JSON has `xor`, `and` and `or` as distinct
+  kinds and the structuring pass treats them differently — XOR becomes
+  `if`/`switch`/`while`, AND and OR become `fork` (OR as a recorded
+  approximation, refused under `--strict`), and a loop must leave an XOR
+  split and re-enter an XOR join or it is refused by name. A reader would
+  therefore have to infer `xor` from a human-chosen label, which is
+  invented structure; declining to infer routes every branch through
+  `fork` and gets the control flow wrong in exactly the way this tool
+  exists to prevent. *No clause beyond the one below: it derives from it.*
+  (pumllint refused ArchiMate readers on 2026-08-27 on separate grounds —
+  the `.puml` is a rendering of a model held elsewhere. Two independent
+  derivations, same answer.)
 - **No invented structure.** Unstructured EPCs are refused, never
   "repaired". *No clause: this is the tool's reason to exist.*
 
