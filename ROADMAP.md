@@ -496,6 +496,50 @@ consequences here, none of them work:
 - [ ] **D3. `--from csv`** — a flat table export for teams whose ARIS
   administrators will not run scripts. Only if A1 reveals that is the
   blocker.
+- [ ] **D4. The sidecar as an evidence record** — two additive keys on
+  each converted record, independent of each other, both inside version 1
+  by the `flagged` and `interfaces` precedent (2026-09-06). The sidecar
+  shape is a contract, so taking either is the maintainer's call; neither
+  touches `converted`, so the census agreement stands. Wait for pull.
+  - (a) **A line → ids map** for the written diagram, so that a pumllint
+    finding — `(file, line)`, with the element's name in its message —
+    joins back to the ARIS objects on that line. Today element identity
+    stops at the emitter:
+    - the report script keeps ARIS's definition/occurrence split in every
+      node id (`<definition GUID>#<occurrence index>`);
+    - the JSON and the sidecar's notes carry the ids;
+    - the golden diagram carries two ids, both process ids, and none of
+      its fixture's 18 node and 4 lane ids.
+
+    So the way back is a name lookup. The map is multi-valued by
+    necessity: the golden's line 10 carries the XOR split `x1` and its
+    first outcome's event `e1`; lane lines carry org-unit ids; and a
+    process-level finding (on line 1, where GEN006 and GEN007 report) maps
+    to the process id the record already holds. Two carriers are ruled
+    out:
+    - a footer, header, title or caption, which holds one value per
+      diagram; or a note per node, which is scored (GEN008 counts notes,
+      which is why `--notes` is off by default). All of these are scanned
+      by GEN007 and `trace` with the requirement pattern;
+    - a per-node `' aris:` comment, which reaches no rule and would move
+      the golden — pumllint's demo — in both repositories.
+
+    Read-only: nothing is written to ARIS, so the "no round-trip" Never is
+    untouched. *Trigger: an adopter routing pumllint findings back to the
+    ARIS objects or their owners.*
+  - (b) **Input and output digests** — sha256 over the decoded,
+    LF-normalised text, the definition pumllint's Arc E run-provenance
+    candidate uses. The CLI already writes UTF-8 with `newline="\n"`, so
+    a record's output digest equals pumllint's input digest for the same
+    diagram, and the two records join on content rather than on paths that
+    differ between machines. *Trigger: the same as pumllint's — an adopter
+    keeping the chain's records as audit evidence. pumllint's half lands
+    first.*
+
+  *2026-10-12: recorded from pumllint's decision record of this date, a
+  knowledge-graph research synthesis read against both roadmaps
+  (pumllint#168, `docs/kg-research-synthesis-evaluation.md` §4–§5).
+  Nothing queued; no corpus figure moves.*
 
 ## Never (settled; each with its re-litigation clause)
 
@@ -518,6 +562,13 @@ consequences here, none of them work:
   asking. When it fires the answer stands as written — the JSON, not an
   RDF/TriG/OWL emitter here; a consumer lifts the contract, as
   `tools/corpus/epml_to_json.py` does in the other direction.*
+  *2026-10-12: touched, not fired, again — by a knowledge-graph
+  research synthesis (pumllint's decision record of this date). Its
+  integration model's process row asks for tasks, events, gateways,
+  participants, flow types and conditions. The version-1 JSON carries all
+  of it, with ids, except typed flows: there is one edge kind, and
+  conditions are the XOR outcomes' events. A synthesis is not a consumer
+  either. D4's line map is read-only and leaves this clause alone.*
 - **No GUI, no ARIS plugin.** The report script is the integration
   surface. *Re-litigate if A1 shows report scripts are administratively
   blocked at typical adopters; D3 is the first fallback, not a plugin.*
