@@ -10,6 +10,12 @@ guide. The guide owns the mapping table; this tool mechanises it. The
 output is **activity diagrams, not BPMN** — if you have BPMN in hand, run
 [`bpmnlint`](https://github.com/bpmn-io/bpmnlint) on it instead.
 
+Both tools belong to [Legible](https://fdurieux.github.io/), a programme to
+make the information upstream of code query-able for humans and AI, and
+quality-gated before it reaches a developer or a dev-agent. Its page maps
+the gates for every kind of upstream artefact — process models among them —
+and says which are covered by other tools and which gaps are still open.
+
 ```bash
 # Not on PyPI yet (roadmap A4) — install from git:
 pip install git+https://github.com/fdurieux/aris2puml
