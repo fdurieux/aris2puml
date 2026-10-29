@@ -266,13 +266,20 @@ is broken, and either way the aris2puml side moves next.
   output, never the last line. No MCP tool deletes a ref or changes a
   repository setting, and a direct API write to the settings endpoint is
   denied by the session's permission gate — reading it works
-  (`delete_branch_on_merge` in the repository object). Delete-branch-on-
-  merge was off until the 2026-09-06 hygiene pass (six stale branches
-  here, twelve in pumllint, all deleted by the owner that day); it is an
-  owner setting — `gh repo edit` with its delete-branch-on-merge option,
-  or Settings → General → "Automatically delete head branches" — and a
-  merged PR's branch vanishing is the sign it is on. Verify a ref with
-  `git ls-remote origin 'refs/heads/*'`; deleting one is the owner's, via
+  (`delete_branch_on_merge` in the repository object). **Merged branches
+  are deleted automatically since 2026-10-29**: the owner turned on
+  Settings → General → "Automatically delete head branches" that day
+  (`gh repo edit` with its delete-branch-on-merge option is the CLI
+  route), and `delete_branch_on_merge` reads `true` from the repository
+  API. A merged PR's branch vanishing is therefore expected and needs no
+  cleanup step; a session that keeps its branch name after a merge
+  pushes it anew from `main`. The setting does not reach branches merged
+  before it was enabled: the 2026-09-06 hygiene pass deleted six stale
+  branches here (twelve in pumllint), and five more merged ones had
+  piled up by 2026-10-29, deleted by the owner the same day. Verify a
+  ref with `git ls-remote origin 'refs/heads/*'`; a branch that outlives
+  its PR — one closed unmerged, never opened as one, or merged before
+  the setting — is the owner's to delete, via
   `gh api -X DELETE repos/fdurieux/aris2puml/git/refs/heads/<branch>` or
   the Branches page.
   **A tag push is refused the same way** (2026-09-07, `git push origin
