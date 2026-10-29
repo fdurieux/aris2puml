@@ -540,6 +540,25 @@ consequences here, none of them work:
   a fact of pumllint's half only — this item is the converter's, and the
   brief's pipeline is the CI adopter the gate names, once it exists. Gate
   unchanged.*
+  *2026-10-29, on the maintainer's go: the exit codes the item leans on
+  hid a gap. With `--check`, any refusal returned 2 before the lint, so a
+  batch with one refused process linted none of the converted ones and
+  said nothing. Measured on the draft fixture beside the refused
+  `mortgage-application.json`: no findings shown, exit 2, against nine
+  findings for the draft alone. On a real corpus (46–74 % conversion) that
+  is nearly every CI run. Found by the reconciliation page's Loop A row.
+  Now, in `cli.main`: with `--report` the run already carried past
+  refusals, so `--check` lints `report.written` and the exit stays 2, a
+  closing stderr line naming how many processes were linted and how many
+  refused (nothing converted: "--check not run"). Without `--report` the
+  documented stop at the first refusal stays as it was, plus a stderr
+  line that `--check` did not run, because linting whatever happened to
+  convert first would make the output depend on input order. The exit
+  contract is unchanged: a refusal is 2 and 2 wins over 1. README's
+  exit-code paragraph and the sidecar paragraph say so. Three tests
+  (`test_cli.py`); suite 136 → 139 passed with pumllint, 111 without.
+  Gate unchanged: this is the shipped CLI behaving as its exit codes
+  read, not the Action.*
 - [ ] **D3. `--from csv`** — a flat table export for teams whose ARIS
   administrators will not run scripts. Only if A1 reveals that is the
   blocker.

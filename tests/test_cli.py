@@ -293,6 +293,38 @@ def test_draft_epc_reproduces_the_guide_findings(tmp_path):
     assert findings == ["ACT002", "ACT003", "ACT005", "ACT005", "ACT006", "ACT006", "ACT006", "GEN006", "GEN007"]
 
 
+def test_check_with_a_report_lints_what_converted_and_still_exits_2(tmp_path):
+    """One refusal no longer hides the findings on every other process: the
+    draft's nine are the same with an unstructured process beside it."""
+    src = tmp_path / "u.json"
+    src.write_text(json.dumps(UNSTRUCTURED), encoding="utf-8")
+    rc, out, err = _run([str(src), str(FIXTURES / "order_to_cash_draft.json"), "-o", str(tmp_path / "out"),
+                         "--report", str(tmp_path / "s.json"),
+                         "--check", "-c", str(CONVENTIONS), "--fail-on", "major"])
+    assert rc == 2
+    findings = sorted(re.findall(r"\[([A-Z]+\d+)/", out))
+    assert findings == ["ACT002", "ACT003", "ACT005", "ACT005", "ACT006", "ACT006", "ACT006", "GEN006", "GEN007"]
+    assert "--check linted the 1 converted process(es) only; 1 refused, so the exit is 2" in err
+
+
+def test_check_with_a_report_and_nothing_converted_says_so(tmp_path):
+    src = tmp_path / "u.json"
+    src.write_text(json.dumps(UNSTRUCTURED), encoding="utf-8")
+    rc, out, err = _run([str(src), "-o", str(tmp_path / "out"), "--report", str(tmp_path / "s.json"),
+                         "--check", "-c", str(CONVENTIONS)])
+    assert rc == 2 and "[ACT" not in out
+    assert "--check not run: nothing converted" in err
+
+
+def test_check_without_a_report_stops_at_the_first_refusal_and_says_so(tmp_path):
+    src = tmp_path / "u.json"
+    src.write_text(json.dumps(UNSTRUCTURED), encoding="utf-8")
+    rc, out, err = _run([str(src), str(FIXTURES / "order_to_cash_draft.json"), "-o", str(tmp_path / "out"),
+                         "--check", "-c", str(CONVENTIONS)])
+    assert rc == 2 and "[ACT" not in out
+    assert "--check not run: the run stopped at the first refusal" in err
+
+
 def _trace(out_dir, manifest, *extra):
     from pumllint.cli import main as pumllint_main
     o, e = io.StringIO(), io.StringIO()

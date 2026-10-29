@@ -2,7 +2,10 @@
 
 Exit codes: 0 converted (and, with --check, pumllint found nothing at or
 above its --fail-on); 1 --check found issues; 2 an input could not be read
-or structured, or usage error.
+or structured, or usage error. A refusal is 2 even when --check found
+issues: with --report the run converts past it and --check lints what
+converted; without, the run stops at the first refusal and --check says
+it did not run.
 """
 
 from __future__ import annotations
@@ -177,6 +180,9 @@ def main(argv: list[str] | None = None) -> int:
                          notes=args.notes, no_lane=args.no_lane)
     except (ReadError, StructureError) as exc:
         print(f"aris2puml: {exc}", file=sys.stderr)
+        if args.check:
+            print("aris2puml: --check not run: the run stopped at the first refusal "
+                  "(--report converts past it and lints what converted)", file=sys.stderr)
         return 2
     for r in report.records:
         if r.status == "refused":
@@ -204,6 +210,15 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         print(f"wrote {Path(args.manifest).as_posix()}")
     if report.any_refused:
+        if args.check:
+            refused = sum(r.status == "refused" for r in report.records)
+            if report.written:
+                if _check(report.written, args.config, args.fail_on) != 2:
+                    print(f"aris2puml: --check linted the {len(report.written)} converted "
+                          f"process(es) only; {refused} refused, so the exit is 2",
+                          file=sys.stderr)
+            else:
+                print("aris2puml: --check not run: nothing converted", file=sys.stderr)
         return 2
     if args.check:
         return _check(report.written, args.config, args.fail_on)

@@ -139,7 +139,7 @@ the three tests that lint the converter's output).
 
 ```bash
 pip install -e ".[test,check]"            # both extras; CI installs exactly this
-python -m pytest -q                       # "136 passed, 1 skipped" with pumllint
+python -m pytest -q                       # "139 passed, 1 skipped" with pumllint
                                           # installed: the skip is test_real.py, the
                                           # private-fixture module, whole, until
                                           # tests/fixtures/real/ holds an export.
@@ -336,7 +336,8 @@ reach the pages says so in its reply and leaves the ROADMAP as the record.
 
 - **Exit codes** `0` / `1` / `2`: converted; `--check` found issues; an
   input could not be read or structured, or usage error. A refusal is
-  always `2`, `--strict` included.
+  always `2`, `--strict` included, and `2` wins over `--check`'s `1`.
+  With `--report`, `--check` still lints what converted (`cli.main`, 2026-10-29).
 - **The version-1 JSON contract** (`README.md` "The intermediate JSON
   (version 1)"). Additive extensions only; a break is the 1.0.0 decision.
 - **The sidecar shape** (`--report`, `aris2puml/report.py` docstring):
