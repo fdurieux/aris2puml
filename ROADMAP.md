@@ -423,6 +423,53 @@ Two rules that follow from the pin to pumllint:
   method tables. A reader built on the DTD alone would parse the file and
   still not know what it read — the same gap `aris/export_epc.js` carries
   in its header.*
+- [ ] **C3. Report-script template for Enterprise BPMN Collaboration
+  diagrams (ONE Standard L4)** — a second untested template beside
+  `aris/export_epc.js`, say `aris/export_bpmn.js`, walking an ARIS BPMN
+  model in place and writing the **same version-1 JSON**: white-box pool
+  → one `Process` (id from `AT_ID` or the model GUID, `owner` from
+  `AT_PERSON_RESPONS`); role lane / system-typed lane → lane; user,
+  manual, service and abstract task → function; every event variant →
+  event; exclusive / parallel gateway → xor / and; inclusive gateway →
+  or, on the OR connector's existing warning and `--strict` path;
+  collapsed Subprocess with its assigned L5 model → interface with `ref`,
+  so `--manifest` plus `trace --fail-on-unknown-ref` covers L4→L5 for
+  free; data objects, documents and applications on a task → `data`
+  items with `role`; black-box pools, messages and message flows →
+  dropped, counted in the sidecar. Emitter, structuring pass, refusals,
+  sidecar and mapping table unchanged by construction. *Gate: a ONE
+  Standard adopter; same status as A1b — untested until run inside ARIS,
+  the pool, lane, gateway, task-type and assignment constants unconfirmed
+  and listed in the header as `export_epc.js` lists its own (the
+  accelerator's method filter *Process Documentation (ONE Standard)*
+  v1.3.0 and its expert Excel sheet are the authoritative constant
+  list).* Ranked below A1b: same validator, same ARIS seat. Not C1, whose
+  gate is unchanged — C1 reads a BPMN 2.0 XML export, this walks the
+  model, and a ONE Standard adopter has no XML in hand unless they export
+  it. Done when a ONE Standard L4 model (the accelerator's CONVENTIONS and
+  EXAMPLES database is the candidate) round-trips and lints clean under
+  pumllint's process-demo configuration with its L5 assignment resolved by
+  `trace`. Issue [#45](https://github.com/fdurieux/aris2puml/issues/45).
+  *2026-10-29: recorded from pumllint's evaluation of the ONE Standard –
+  Foundation accelerator's semantic check
+  ([docs/aris-one-standard-semantic-check-evaluation.md](https://github.com/fdurieux/pumllint/blob/main/docs/aris-one-standard-semantic-check-evaluation.md),
+  pumllint #210): the accelerator's process level is BPMN, not EPC —
+  L1–L3 are value-added chain diagrams, which are the `--manifest`
+  inventory and nothing to convert, and L4 is an Enterprise BPMN
+  Collaboration diagram with exactly one white-box pool, lanes, tasks,
+  events, gateways, data objects and an optional L5 subprocess. pumllint's
+  `docs/business-processes.md` §2 already states the BPMN correspondence
+  (tasks for functions, lanes for org units, exclusive gateways as
+  `if`/`switch`, parallel as `fork`, one diagram per pool), so the gap is
+  one report script. The accelerator's own 35-rule check tests the
+  repository only — attributes, hierarchy, group placement, name identity,
+  assignments, occurrences, library echo, document links — and nothing of
+  the flow, so the division of labour this converter assumes (flow here
+  and in pumllint, repository semantics in ARIS) holds for ONE Standard
+  adopters as it does for EPC ones. Nothing built; no Never touched: no
+  BPMN output, no invented structure (an inclusive gateway stays `or`),
+  no semantic checks (pool count, lane typing and verb–noun task names
+  are ONE Standard's and pumllint's conventions, ACT006 for the last).*
 
 *2026-09-14, on this arc's scope — an EA deck, and the front-end it does
 not open.* An adopter's EA function circulated five slides (an
