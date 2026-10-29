@@ -43,6 +43,17 @@ Exit codes: `0` converted (and, with `--check`, nothing at or above
 `--fail-on`); `1` `--check` found issues; `2` an input could not be read
 or structured, or usage error.
 
+When a batch holds a process the converter refuses, the exit code is `2`
+whatever `--check` finds, and what `--check` does depends on `--report`.
+Without it, the run stops at that process, so nothing is linted, and the
+converter says so on stderr. With `--report`, the run carries on past the
+refusal, `--check` lints every diagram that was converted, and a closing
+line names how many processes were linted and how many were refused. That
+lint covers only part of the batch, so treat the findings as incomplete:
+a rule that compares diagrams with each other cannot see the refused ones,
+and the sidecar's `converted_percent` says how much of the batch is
+missing.
+
 ## Pipeline
 
 ```
@@ -201,7 +212,8 @@ A summary block gives the number a process owner reads
 (`converted_percent`); the per-process records are the evidence the
 roadmap is prioritised on. With `--report` a refusal is recorded and the
 run **continues** to the next process instead of stopping at the first;
-the exit code is still `2` when anything was refused. Reader-level drops
+the exit code is still `2` when anything was refused, and `--check`, if
+given, lints the processes that did convert. Reader-level drops
 go into the sidecar only — they are the contract working as documented,
 not a per-run surprise — while the structuring pass's approximations and
 drops are also warned on stderr, as before.
