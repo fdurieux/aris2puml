@@ -372,6 +372,21 @@ Two rules that follow from the pin to pumllint:
   method, so there is no demand to gate on; pumllint's typed
   diagram→diagram links item (Arc C, `ref over` / declared links) is the
   other half when there is. The contract stays at `owner`.*
+  *2026-10-29: the brief's third process facet, a business capability (the
+  EA layer above the processes: what the bank can do, with no "how"), gets
+  the same answer, recorded in pumllint's settled record "Business
+  capability as an EA layer" (pumllint#213). The field is the facet case
+  this repository already settled: an additive contract change plus the
+  report script, adopter-gated, with no demand to gate on. Coverage needs
+  no field: a capability id in the ARIS model name crosses as the title
+  (and the file slug), and pumllint `trace` over an inventory of
+  capability ids with `--fail-on-uncovered` reports every capability no
+  diagram cites — measured through the converter on the order-to-cash
+  fixture renamed `Order to cash [CAP-012]`: `1/2 covered`, CAP-011
+  uncovered, exit 1. A typed `realises`
+  relation is pumllint's declared-links item, and a check that a process
+  realises a capability in the map needs a second artefact, so it is the
+  ontology's, never this converter's. The contract stays at `owner`.*
 - [x] **B5. Structure diagnostics** *(2026-09-05)* — on `StructureError`,
   write the partial diagram with the offending connector as a `#red` note
   so the modeller sees *where* to restructure, instead of an id on stderr.
