@@ -607,6 +607,37 @@ consequences here, none of them work:
   (pumllint#168, `docs/kg-research-synthesis-evaluation.md` §4–§5).
   Nothing queued; no corpus figure moves.*
 
+  *2026-10-30: a qualification on the summary the keys would sit beside.
+  `converted_percent` (`Report.summary()`) divides by records, not by
+  ARIS processes, and a refusal at the reader is one record with
+  `id: null` (`Record.id`, "None when the whole input was refused")
+  however many processes the input held. `read_epml` is all or nothing
+  on purpose ("a document is one input"), so one malformed EPC refuses
+  every EPC in its document, the well-formed ones included. Measured on
+  `tests/test_epml.py`'s two-EPC `DOC` with `--from epml --report`: as
+  committed, `processes 2, converted 2, 100.0`; with `EPML-9`'s function
+  name emptied, `processes 1, converted 0, refused 1, 0.0`, exit 2 —
+  `EPML-7`, well-formed, is neither converted nor counted. So on the
+  `--from epml` route the figure misstates both its numerator and its
+  denominator, and only the records show it: a `null` id and a reason
+  reading "N of M EPCs malformed". The JSON route (one process per file)
+  is unaffected, and so is the census, which runs over per-model JSON
+  from `epml_to_json.py`; `private_set.py` compares `converted` only.
+  The prose that leans on the figure — README's `--check` paragraph
+  ("says how much of the batch is missing"), its summary paragraph and
+  its `--strict --report` paragraph ("the share of the corpus") — holds
+  on the JSON route. Not measured here: a whole collection run as one
+  EPML document, which by the reader's rule is refused whole if any of
+  its EPCs is malformed (the census records 2.5 % of SAP's 604 as
+  reader-refused). Found by the reconciliation page's check 21 (Loop A
+  "complete over the converted set"), beside #48. Nothing changed; no
+  corpus figure moves. If taken up, the remedy is the maintainer's call
+  between the reader's all-or-nothing rule and an additive summary key
+  counting the processes inside refused inputs (inside version 1 by the
+  precedent above); until then, read the records, not the percentage, on
+  a `--from epml` run. Trigger: an adopter reading `converted_percent`
+  off a multi-EPC document.*
+
 ## Never (settled; each with its re-litigation clause)
 
 - **No linting in aris2puml.** Rules live in pumllint; this tool only makes
