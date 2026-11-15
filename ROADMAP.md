@@ -145,6 +145,32 @@ Two rules that follow from the pin to pumllint:
   `--diagnose` are the instruments that turn the doubt into a number, and a
   low rate is a finding about the models — unstructured joins, mismatched
   connectors — not a reason to widen what converts. The Never list stands.*
+  *2026-11-15: a cross-repository roadmap (Codex thread of 2026-11-14,
+  pinned at this repository's `ca22e13`; its record is the private
+  `fdurieux/knowgov-bench`, package XR-10 "Prove export identity and
+  conversion fidelity", recorded there by the maintainer's go of
+  2026-11-15) restates this item. Nothing new is opened and the gate is
+  unchanged: the same adopter with ARIS Architect, A1b at runtime. Its
+  acceptance criteria, verbatim, join A1's deliverable:
+  (1) "A target-installation export is tested for rename, deletion,
+  re-import and occurrence-vs-definition identity; method filter and tool
+  version are recorded."
+  (2) "Each generated element has a source mapping; a report classifies
+  every lost/approximated/unmapped category and task eligibility rejects
+  required losses."
+  (3) "Both existing mortgage fixtures remain refusal regression cases; no
+  loss is repaired by inference. At least one approved settlement slice is
+  exported and reconciled."
+  Read against this file: (1) widens A1b from one round-trip to identity
+  under rename, deletion and re-import, which is the register's
+  reconciliation (ieam-register `tools/reconcile.py`, a vanished id
+  `stale`, never a deletion) fed by a real export. (2)'s "task
+  eligibility" is a consumer's policy over the sidecar, not a converter
+  change; `--strict` stays a set membership and reader-level drops stay
+  the contract. (3) is the Never list and B1's 2026-09-06 entry as they
+  stand. The package's completion evidence also names "a public synthetic
+  fixture"; that cannot stand in for A1b ("Do not fake the fixture"),
+  and the adopter's export stays private per the 2026-09-06 decision.*
 - [x] **A2. Multiple start events** *(2026-09-04)* — shipped as *entry
   regions* plus *mid-flow triggers*. Entry region: start events grouped by
   the join each reaches, following the post-dominator tree, into nested
