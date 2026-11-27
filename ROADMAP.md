@@ -197,6 +197,14 @@ Two rules that follow from the pin to pumllint:
   diagram, pumllint's §2 table (whose row says "process ID", not where
   ARIS holds it). Still unrun; nothing measured. C3's planned "id from
   `AT_ID` or the model GUID" reads against 0022 when that item opens.*
+  *2026-11-27, the id pattern widens: pumllint #277 (cc45435) changed the
+  guide's `requirement-link` pattern from `PROC-\d{4}` to `PROC-\d{4,}`,
+  because ieam-register ids are `<PREFIX>-<4+ digits>` and `\d{4}` read
+  `PROC-10000` as `PROC-1000`; the register's seam check (ieam-register
+  #47, check 2a) reads this repository's mirror of that config. So
+  `tests/fixtures/conventions.toml` moves in step, and README's two
+  sentences say "four or more digits". No test pinned the old pattern.
+  Unchanged: the golden diagrams, the JSON contract, the mapping table.*
 - [x] **A2. Multiple start events** *(2026-09-04)* — shipped as *entry
   regions* plus *mid-flow triggers*. Entry region: start events grouped by
   the join each reaches, following the post-dominator tree, into nested
