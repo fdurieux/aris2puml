@@ -171,6 +171,32 @@ Two rules that follow from the pin to pumllint:
   stand. The package's completion evidence also names "a public synthetic
   fixture"; that cannot stand in for A1b ("Do not fake the fixture"),
   and the adopter's export stays private per the 2026-09-06 decision.*
+  *2026-11-27: ieam-register decision 0022 (approved the same day; #52)
+  moves the script's identity from the model to the function definition.
+  `process.id` is now `processId(model)`: the `REGISTER_ID_ATTRIBUTE` of
+  the one `OT_FUNC` definition the model is assigned to, else that
+  definition's GUID; with none, or several carrying different ids, the
+  model's GUID plus a warning (collected, shown once by `Dialogs.MsgBox`
+  after `WriteReport`), so GEN007 still fires. An interface's `ref` reads
+  the occurrence's own `ObjDef` (`attr(def, …) || def.GUID()`), no longer
+  `AssignedModels()[0]`. `REGISTER_ID_ATTRIBUTE = Constants.AT_ID` is the
+  one constant at the top, mirroring the register's `sources.toml`
+  `[system.aris] register_id_attribute`; owner and name stay the model's
+  (0022's accepted gap). A1b's list of names to confirm at runtime grows,
+  each checked against the cited guide's text (10.0.27) only:
+  `Model.SuperiorObjDefs()`, in neither the guide nor this repository, name
+  and return both unknown, its failure caught and warned rather than
+  aborting the export; `Dialogs.MsgBox`, named in the guide's
+  exception-reporting example, unattended behaviour unknown;
+  `ObjDef.GUID()`, `Model.GUID()`, `Name(-1)`, called before and classified
+  in neither of the header's columns, absent from the guide's text. The
+  guide does say (3.4.10) that a user-defined attribute's type number must
+  come from its TypeGUID via `UserDefinedAttributeTypeNum()`, so an
+  organisation-named attribute is an adopter edit at A1b, not a value
+  swap. Unchanged: the JSON contract, the footer format, the golden
+  diagram, pumllint's §2 table (whose row says "process ID", not where
+  ARIS holds it). Still unrun; nothing measured. C3's planned "id from
+  `AT_ID` or the model GUID" reads against 0022 when that item opens.*
 - [x] **A2. Multiple start events** *(2026-09-04)* — shipped as *entry
   regions* plus *mid-flow triggers*. Entry region: start events grouped by
   the join each reaches, following the post-dominator tree, into nested

@@ -136,9 +136,27 @@ roadmap says when one would.
 | loop (back edge to an XOR join below the header) | `repeat … repeat while (Back event?) is (Back event) not (Exit event)` — each label only when the loop has that event | ACT003, ACT004 |
 | loop whose XOR both merges the retry and decides | `while (Back event?) is (Back event) … endwhile (Exit event)` | ACT003, ACT004 |
 | loop with one function on the return path | `repeat` … `backward :Function;` … `repeat while (…)`; events and the org unit there are dropped, with a warning | ACT006, ACT003, ACT004 |
-| process interface | `' aris: interface <ref>` then `:Name;`, and `<ref>` in the footer (`— interfaces: <ref>, …`): the comment is for readers, the footer is what pumllint sees | ACT006; GEN007, `pumllint trace` |
+| process interface (its `<ref>`: see *Where the ids come from* below) | `' aris: interface <ref>` then `:Name;`, and `<ref>` in the footer (`— interfaces: <ref>, …`): the comment is for readers, the footer is what pumllint sees | ACT006; GEN007, `pumllint trace` |
 | information object, document, IT system on a function | nothing, by default; with `--notes`, one `note right` per function listing them (`document: Order form`, `system: ERP`, `input: …`) | GEN008 |
-| process name, id, owner | `@startuml <slug>`, `title`, `footer owner: … — ARIS process <id>` (then `— interfaces: …` when the process has any) | GEN001/002/006/007 |
+| process name, id, owner (the id: see *Where the ids come from* below) | `@startuml <slug>`, `title`, `footer owner: … — ARIS process <id>` (then `— interfaces: …` when the process has any) | GEN001/002/006/007 |
+
+**Where the ids come from.** In ARIS, a process exists twice: as a
+*function definition* — the object that stands for the process in the
+process landscape — and as the EPC model that draws it, which ARIS calls
+the model *assigned* to that definition. The process id in the footer is
+read from the definition, never from the model: the report script takes
+the id your organisation has typed into the definition's ID attribute
+(`AT_ID` unless you change `REGISTER_ID_ATTRIBUTE`, the one constant at
+the top of `aris/export_epc.js`), and the definition's ARIS GUID when that
+attribute is empty. If no definition has the EPC assigned, or several do
+with different ids, the script writes the model's GUID instead and shows a
+warning when the report finishes. A GUID does not look like a process id
+(the guide's configuration expects `PROC-` and four digits), so pumllint's
+GEN007 reports that footer, and the one carrying a definition's GUID,
+rather than letting either pass. An interface's
+`<ref>` is read the same way from the interface's own definition. The
+title and the owner still come from the EPC model. All of this is
+untested inside ARIS, like the rest of the script.
 
 **Defects are preserved, not repaired.** A flow that ends on a function
 instead of an end event gets no `stop`, so pumllint's ACT002 reports the
