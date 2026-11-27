@@ -151,7 +151,7 @@ the top of `aris/export_epc.js`), and the definition's ARIS GUID when that
 attribute is empty. If no definition has the EPC assigned, or several do
 with different ids, the script writes the model's GUID instead and shows a
 warning when the report finishes. A GUID does not look like a process id
-(the guide's configuration expects `PROC-` and four digits), so pumllint's
+(the guide's configuration expects `PROC-` and four or more digits), so pumllint's
 GEN007 reports that footer, and the one carrying a definition's GUID,
 rather than letting either pass. An interface's
 `<ref>` is read the same way from the interface's own definition. The
@@ -338,7 +338,7 @@ broken link in the process landscape.
   is the set of processes that have a diagram.
 - `-c conventions.toml` points at a configuration file. Among other things
   it tells pumllint what a process identifier looks like, as a pattern
-  such as "`PROC-` followed by four digits". Without it the tool could not
+  such as "`PROC-` followed by four or more digits". Without it the tool could not
   tell which words in a footer are identifiers. The same file configures
   the style checks, so the pattern is defined once.
 - With the diagrams read and the inventory loaded, every identifier lands
