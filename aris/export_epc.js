@@ -6,7 +6,8 @@
  * (docs.aris.com, 10.0.27) and ARIS Community report code:
  *
  *   confirmed   ArisData.getSelectedModels, Model.ObjOccList, ObjOcc.ObjDef,
- *               ObjDef.TypeNum, ObjOcc.SymbolNum, ObjDef.AssignedModels,
+ *               ObjDef.TypeNum, ObjOcc.SymbolNum, ObjDef.AssignedModels
+ *               (no longer called since 2026-11-27),
  *               ObjOcc.OutEdges/InEdges, CxnOcc.TargetObjOcc/SourceObjOcc,
  *               Constants.EDGES_ALL, OT_FUNC, OT_EVT, OT_RULE, ST_PRCS_IF,
  *               Context.getSelectedFile, Context.getSelectedLanguage
@@ -17,6 +18,30 @@
  *               OT_INFO_CARR, OT_CLST, OT_TECH_TRM, OT_APPL_SYS_TYPE,
  *               CT_IS_INP_FOR, CT_HAS_OUT, CxnOcc.Cxn().TypeNum(), and
  *               whether OutEdges' argument is a direction or a kind filter
+ *
+ * Added 2026-11-27 (ieam-register decision 0022), checked against the
+ * same guide's text and nothing else:
+ *
+ *   unconfirmed Model.SuperiorObjDefs() — the call meant to reach the
+ *               definitions a model is assigned to. Found in neither the
+ *               guide nor this repository: the name and what it returns
+ *               are to be checked at A1b. processId() catches its failure
+ *               and says so.
+ *               Dialogs.MsgBox — the name is in the guide (its exception-
+ *               reporting example); whether it shows anything when the
+ *               report runs unattended is unconfirmed.
+ *               ObjDef.GUID(), Model.GUID(), Name(-1) — called before this
+ *               change too, classified in neither column above, and absent
+ *               from the guide's text.
+ *
+ * Identity (decision 0022): a process is the function definition (OT_FUNC)
+ * its EPC is assigned to, never the model. process.id is that definition's
+ * REGISTER_ID_ATTRIBUTE, else its GUID; with no such definition, or more
+ * than one carrying different ids, it is the model's GUID and a warning is
+ * shown, so pumllint's GEN007 still fires on the footer. An interface's ref
+ * is the REGISTER_ID_ATTRIBUTE of the interface occurrence's own
+ * definition, else that definition's GUID. The process name and owner
+ * still come from the model.
  *
  * Node ids are the object definition GUID plus the occurrence index in
  * the model ("<guid>#<n>"), so the same definition occurring twice yields
@@ -31,6 +56,16 @@
  * Usage (ARIS Architect): select one or more EPC models, run the report,
  * save the returned text as <model>.json, then:  aris2puml <model>.json
  */
+
+// The attribute that carries the register id on a function definition:
+// ieam-register sources.toml [system.aris] register_id_attribute, AT_ID by
+// default (itself unconfirmed, above). An organisation that keeps the id
+// in an attribute of its own names it here. Such an attribute is
+// user-defined, and the guide says (3.4.10) its type number changes on a
+// server restart and must be determined from its TypeGUID with the filter
+// method UserDefinedAttributeTypeNum(); how to reach the filter from a
+// report is not in the guide's text, so that line is the adopter's.
+var REGISTER_ID_ATTRIBUTE = Constants.AT_ID;
 
 var KIND = {};
 KIND[Constants.OT_FUNC] = "function";
@@ -65,6 +100,34 @@ function attr(item, attrNum) {
   return a.IsMaximized() ? a.getValue() : "";
 }
 
+var warnings = [];                                // shown once, after the output is written
+
+// The process id (decision 0022): the register id of the one function
+// definition the model is assigned to, else that definition's GUID; else the
+// model's GUID, with a warning.
+function processId(model) {
+  var defs;
+  try {
+    defs = model.SuperiorObjDefs();               // UNCONFIRMED, see the header
+  } catch (e) {
+    warnings.push(model.Name(-1) + ": Model.SuperiorObjDefs() failed (" + e +
+                  "); process id is the model's GUID");
+    return model.GUID();
+  }
+  var ids = [], seen = {};
+  for (var i = 0; i < defs.length; i++) {
+    if (defs[i].TypeNum() != Constants.OT_FUNC) continue;
+    var id = attr(defs[i], REGISTER_ID_ATTRIBUTE) || defs[i].GUID();
+    if (!seen[id]) { seen[id] = true; ids.push(id); }
+  }
+  if (ids.length === 1) return ids[0];
+  warnings.push(model.Name(-1) + ": " + (ids.length === 0
+      ? "no function definition has this model assigned"
+      : "function definitions with different ids have this model assigned (" + ids.join(", ") + ")") +
+      "; process id is the model's GUID");
+  return model.GUID();
+}
+
 function exportModel(model) {
   var lanes = [], laneIds = {}, nodes = [], edges = [], laneOf = {};
   var occs = model.ObjOccList();
@@ -86,8 +149,7 @@ function exportModel(model) {
     if (kind !== "xor" && kind !== "and" && kind !== "or") node.name = def.Name(-1);
     if (kind === "function" && occ.SymbolNum() == INTERFACE_SYMBOL) {
       node.kind = "interface";
-      var linked = def.AssignedModels();
-      if (linked.length > 0) node.ref = attr(linked[0], Constants.AT_ID) || linked[0].GUID();
+      node.ref = attr(def, REGISTER_ID_ATTRIBUTE) || def.GUID();   // the occurrence's own definition
     }
     nodes.push(node);
   }
@@ -132,7 +194,7 @@ function exportModel(model) {
   var doc = {
     version: 1,
     process: {
-      id: attr(model, Constants.AT_ID) || model.GUID(),
+      id: processId(model),
       name: model.Name(-1),
       owner: attr(model, Constants.AT_PERSON_RESPONS)
     },
@@ -150,6 +212,7 @@ function main() {
   var outfile = Context.createOutputObject(Constants.OUTTEXT, Context.getSelectedFile());
   outfile.OutputTxt(text);
   outfile.WriteReport();
+  if (warnings.length) Dialogs.MsgBox("aris2puml export, process ids:\n" + warnings.join("\n"));
 }
 
 main();
